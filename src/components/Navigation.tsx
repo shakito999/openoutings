@@ -8,12 +8,14 @@ import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function Navigation() {
   const router = useRouter()
+  const [mounted, setMounted] = useState(false)
   const { language, toggleLanguage } = useLanguage()
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<any>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user)
       if (user) {
@@ -46,6 +48,26 @@ export default function Navigation() {
     await supabase.auth.signOut()
     setUser(null)
     router.push('/welcome')
+  }
+
+  // Prevent SSR mismatch
+  if (!mounted) {
+    return (
+      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">O</span>
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                OpenOutings
+              </span>
+            </div>
+          </div>
+        </div>
+      </nav>
+    )
   }
 
   return (

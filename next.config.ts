@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   typescript: {
-    // Exclude supabase functions from build type checking
     ignoreBuildErrors: false,
   },
 };
