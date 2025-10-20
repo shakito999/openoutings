@@ -1,0 +1,112 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.availability_polls (
+  id bigint NOT NULL DEFAULT nextval('availability_polls_id_seq'::regclass),
+  creator_id uuid,
+  title text NOT NULL,
+  starts_on date NOT NULL,
+  ends_on date NOT NULL,
+  slug text NOT NULL UNIQUE,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT availability_polls_pkey PRIMARY KEY (id),
+  CONSTRAINT availability_polls_creator_id_fkey FOREIGN KEY (creator_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.event_attendees (
+  event_id bigint NOT NULL,
+  user_id uuid NOT NULL,
+  joined_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT event_attendees_pkey PRIMARY KEY (event_id, user_id),
+  CONSTRAINT event_attendees_event_id_fkey FOREIGN KEY (event_id) REFERENCES public.events(id),
+  CONSTRAINT event_attendees_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.event_photos (
+  id bigint NOT NULL DEFAULT nextval('event_photos_id_seq'::regclass),
+  event_id bigint,
+  storage_path text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT event_photos_pkey PRIMARY KEY (id),
+  CONSTRAINT event_photos_event_id_fkey FOREIGN KEY (event_id) REFERENCES public.events(id)
+);
+CREATE TABLE public.events (
+  id bigint NOT NULL DEFAULT nextval('events_id_seq'::regclass),
+  host_id uuid,
+  title text NOT NULL,
+  description text,
+  starts_at timestamp with time zone NOT NULL,
+  ends_at timestamp with time zone,
+  capacity integer CHECK (capacity > 0),
+  gender USER-DEFINED DEFAULT 'none'::gender_restriction,
+  address text,
+  lat double precision,
+  lng double precision,
+  is_paid boolean DEFAULT false,
+  price_cents integer,
+  created_at timestamp with time zone DEFAULT now(),
+  is_recurring boolean DEFAULT false,
+  recurrence_pattern USER-DEFINED DEFAULT 'none'::recurrence_pattern,
+  recurrence_end_date date,
+  parent_event_id bigint,
+  CONSTRAINT events_pkey PRIMARY KEY (id),
+  CONSTRAINT events_host_id_fkey FOREIGN KEY (host_id) REFERENCES public.profiles(id),
+  CONSTRAINT events_parent_event_id_fkey FOREIGN KEY (parent_event_id) REFERENCES public.events(id)
+);
+CREATE TABLE public.interests (
+  id bigint NOT NULL DEFAULT nextval('interests_id_seq'::regclass),
+  name text NOT NULL UNIQUE,
+  CONSTRAINT interests_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.poll_slots (
+  id bigint NOT NULL DEFAULT nextval('poll_slots_id_seq'::regclass),
+  poll_id bigint,
+  on_date date NOT NULL,
+  slot USER-DEFINED NOT NULL,
+  CONSTRAINT poll_slots_pkey PRIMARY KEY (id),
+  CONSTRAINT poll_slots_poll_id_fkey FOREIGN KEY (poll_id) REFERENCES public.availability_polls(id)
+);
+CREATE TABLE public.poll_votes (
+  slot_id bigint NOT NULL,
+  user_id uuid NOT NULL,
+  preference smallint DEFAULT 1,
+  CONSTRAINT poll_votes_pkey PRIMARY KEY (slot_id, user_id),
+  CONSTRAINT poll_votes_slot_id_fkey FOREIGN KEY (slot_id) REFERENCES public.poll_slots(id),
+  CONSTRAINT poll_votes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  username text UNIQUE,
+  full_name text,
+  avatar_url text,
+  created_at timestamp with time zone DEFAULT now(),
+  bio text,
+  cover_url text,
+  onboarding_completed boolean DEFAULT false,
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.reviews (
+  id bigint NOT NULL DEFAULT nextval('reviews_id_seq'::regclass),
+  host_id uuid,
+  reviewer_id uuid,
+  rating integer CHECK (rating >= 1 AND rating <= 5),
+  comment text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT reviews_pkey PRIMARY KEY (id),
+  CONSTRAINT reviews_host_id_fkey FOREIGN KEY (host_id) REFERENCES public.profiles(id),
+  CONSTRAINT reviews_reviewer_id_fkey FOREIGN KEY (reviewer_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.user_follows (
+  follower_id uuid NOT NULL,
+  following_id uuid NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_follows_pkey PRIMARY KEY (follower_id, following_id),
+  CONSTRAINT user_follows_follower_id_fkey FOREIGN KEY (follower_id) REFERENCES public.profiles(id),
+  CONSTRAINT user_follows_following_id_fkey FOREIGN KEY (following_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.user_interests (
+  user_id uuid NOT NULL,
+  interest_id bigint NOT NULL,
+  CONSTRAINT user_interests_pkey PRIMARY KEY (user_id, interest_id),
+  CONSTRAINT user_interests_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT user_interests_interest_id_fkey FOREIGN KEY (interest_id) REFERENCES public.interests(id)
+);
