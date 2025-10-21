@@ -115,6 +115,27 @@ export default function EventsWithDistance({ events }: EventsWithDistanceProps) 
               </div>
             )}
 
+            {/* Interests */}
+            {e.event_interests && e.event_interests.length > 0 && (
+              <div className="mb-4">
+                <div className="flex flex-wrap gap-1.5">
+                  {e.event_interests.slice(0, 3).map((ei: any) => (
+                    <span
+                      key={ei.interest_id}
+                      className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium"
+                    >
+                      {ei.interests?.name}
+                    </span>
+                  ))}
+                  {e.event_interests.length > 3 && (
+                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full text-xs font-medium">
+                      +{e.event_interests.length - 3}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Capacity */}
             {e.capacity && (
               <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">

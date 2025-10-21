@@ -5,6 +5,8 @@ import JoinEventButton from '@/components/JoinEventButton'
 import AddToCalendarButton from '@/components/AddToCalendarButton'
 import EventQRSection from '@/components/EventQRSection'
 import CancelEventButton from '@/components/CancelEventButton'
+import SimilarEvents from '@/components/SimilarEvents'
+import EventPhotoGallery from '@/components/EventPhotoGallery'
 import { formatRecurrencePattern } from '@/lib/recurringEvents'
 
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -15,7 +17,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const { data: { session } } = await supabase.auth.getSession()
   const user = session?.user || null
   
-  // Fetch event with host profile and photos
+  // Fetch event with host profile, photos, and interests
   const { data: event } = await supabase
     .from('events')
     .select(`
@@ -35,6 +37,17 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     `)
     .eq('id', id)
     .single()
+  
+  // Fetch interests for this event
+  let eventInterests: string[] = []
+  if (event) {
+    const { data: interestsData } = await supabase
+      .from('event_interests')
+      .select('interest_id, interests(name)')
+      .eq('event_id', id)
+    
+    eventInterests = interestsData?.map((ei: any) => ei.interests.name).filter(Boolean) || []
+  }
 
   if (!event) return notFound()
 
@@ -93,23 +106,19 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               </div>
             )}
 
-            {/* Image */}
-            <div className="relative h-96 rounded-xl overflow-hidden shadow-xl">
-              <img
-                src={imageUrl}
-                alt={event.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-4 right-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm px-4 py-2 rounded-full">
-                <span className="text-sm font-medium">
-                  {new Date(event.starts_at).toLocaleDateString('bg-BG', { 
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                  })}
-                </span>
-              </div>
-            </div>
+            {/* Photo Gallery */}
+            <EventPhotoGallery 
+              photos={event.event_photos && event.event_photos.length > 0 
+                ? event.event_photos 
+                : [{ storage_path: imageUrl }]
+              }
+              eventTitle={event.title}
+              eventDate={new Date(event.starts_at).toLocaleDateString('bg-BG', { 
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              })}
+            />
 
             {/* Event Info Card */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
@@ -165,7 +174,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`}
+                    href={event.lat && event.lng 
+                      ? `https://www.google.com/maps/search/?api=1&query=${event.lat},${event.lng}`
+                      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 dark:text-blue-400 hover:underline flex items-center"
@@ -175,6 +187,77 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </a>
+                </div>
+              )}
+
+              {/* Difficulty Level */}
+              {event.difficulty && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 mr-3">
+                      {(event.difficulty === 'beginner' || event.difficulty === 'easy') && (
+                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                          🟢
+                        </div>
+                      )}
+                      {(event.difficulty === 'moderate' || event.difficulty === 'intermediate') && (
+                        <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                          🟡
+                        </div>
+                      )}
+                      {(event.difficulty === 'advanced' || event.difficulty === 'expert') && (
+                        <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                          🔴
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Difficulty Level</h3>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white capitalize">
+                        {event.difficulty}
+                        {event.difficulty === 'beginner' && ' - Anyone can join'}
+                        {event.difficulty === 'easy' && ' - Minimal effort required'}
+                        {event.difficulty === 'moderate' && ' - Some fitness needed'}
+                        {event.difficulty === 'intermediate' && ' - Good fitness level'}
+                        {event.difficulty === 'advanced' && ' - High fitness required'}
+                        {event.difficulty === 'expert' && ' - Very demanding'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tips & Requirements */}
+              {event.tips && (
+                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-start">
+                    <svg className="w-5 h-5 mr-3 mt-0.5 text-blue-600 dark:text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <div>
+                      <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">Tips & Requirements</h3>
+                      <p className="text-blue-800 dark:text-blue-200 whitespace-pre-wrap">
+                        {event.tips}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Interests */}
+              {eventInterests.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Интереси</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {eventInterests.map(interest => (
+                      <span
+                        key={interest}
+                        className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-sm font-medium"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -339,6 +422,19 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Similar Events Section */}
+        <div className="mt-16">
+          <SimilarEvents 
+            currentEvent={{
+              id: event.id,
+              interests: eventInterests,
+              lat: event.lat,
+              lng: event.lng,
+              starts_at: event.starts_at
+            }}
+          />
         </div>
       </div>
     </div>

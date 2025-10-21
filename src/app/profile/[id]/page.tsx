@@ -39,20 +39,24 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
   const isOwnProfile = currentUser?.id === id
   
-  // Fetch user's hosted events
+  // Fetch user's hosted events (only upcoming)
   const { data: hostedEvents } = await supabase
     .from('events')
     .select('*, event_photos(storage_path), event_attendees(user_id)')
     .eq('host_id', id)
+    .gte('starts_at', new Date().toISOString())
     .order('starts_at', { ascending: true })
     .limit(6)
 
-  // Fetch user's joined events
-  const { data: joinedEvents } = await supabase
+  // Fetch user's joined events (only upcoming)
+  const { data: joinedEventData } = await supabase
     .from('event_attendees')
-    .select('events(*, event_photos(storage_path), event_attendees(user_id))')
+    .select('events!inner(*, event_photos(storage_path), event_attendees(user_id))')
     .eq('user_id', id)
+    .gte('events.starts_at', new Date().toISOString())
     .limit(6)
+  
+  const joinedEvents = joinedEventData?.map(item => (item as any).events).filter(Boolean)
 
   // Fetch user's created polls
   const { data: createdPolls } = await supabase
@@ -255,12 +259,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
               Присъединени събития
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {joinedEvents.map((item: any) => {
-                const event = item.events
-                return (
-                  <Link
-                    key={event.id}
-                    href={`/events/${event.id}`}
+              {joinedEvents.map((event: any) => (
+                <Link
+                  key={event.id}
+                  href={`/events/${event.id}`}
                     className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500"
                   >
                     <div className="h-40 relative overflow-hidden">
@@ -285,8 +287,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                       </p>
                     </div>
                   </Link>
-                )
-              })}
+              ))}
             </div>
           </div>
         )}

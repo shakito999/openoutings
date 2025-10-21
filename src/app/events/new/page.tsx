@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Map from '@/components/Map'
 import { supabase } from '@/lib/supabaseClient'
-import { INTERESTS, searchInterests, getInterestDisplay } from '@/lib/interestsBilingual'
+import { getInterestDisplay, searchInterests } from '@/lib/interestsBilingual'
+import { INTERESTS } from '@/lib/interestGroups'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { compressImage } from '@/lib/imageCompression'
 
@@ -25,6 +26,8 @@ export default function NewEventPage(){
   const [isRecurring, setIsRecurring] = useState(false)
   const [recurrencePattern, setRecurrencePattern] = useState<'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly'>('none')
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('')
+  const [tips, setTips] = useState('')
+  const [difficulty, setDifficulty] = useState<'beginner' | 'easy' | 'moderate' | 'intermediate' | 'advanced' | 'expert'>('beginner')
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files
@@ -104,6 +107,8 @@ export default function NewEventPage(){
       is_recurring: isRecurring,
       recurrence_pattern: isRecurring ? recurrencePattern : 'none',
       recurrence_end_date: isRecurring && recurrenceEndDate ? recurrenceEndDate : null,
+      tips: tips || null,
+      difficulty,
     }).select().single()
     
     if (error) {
@@ -194,7 +199,7 @@ export default function NewEventPage(){
                 </label>
                 <input
                   type="datetime-local"
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all [color-scheme:light] dark:[color-scheme:dark]"
                   value={when}
                   onChange={e=>setWhen(e.target.value)}
                 />
@@ -316,22 +321,29 @@ export default function NewEventPage(){
                 </label>
                 <input
                   className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Enter event address"
+                  placeholder="Enter event address or use map below"
                   value={address}
                   onChange={e=>setAddress(e.target.value)}
                 />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Will be auto-filled when you select a location on the map
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Click on map to set location
+                  Map Location
                 </label>
-                <div className="rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
-                  <Map onPick={(a,b)=> setLatlng([a,b])} />
-                </div>
+                <Map 
+                  onPick={(a,b)=> setLatlng([a,b])} 
+                  onAddressFound={(addr) => !address && setAddress(addr)}
+                />
                 {latlng && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    Selected: {latlng[0].toFixed(4)}, {latlng[1].toFixed(4)}
+                  <p className="text-sm text-green-600 dark:text-green-400 mt-2 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Location selected: {latlng[0].toFixed(4)}, {latlng[1].toFixed(4)}
                   </p>
                 )}
               </div>
@@ -394,6 +406,52 @@ export default function NewEventPage(){
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Tips & Requirements Section */}
+            <div className="space-y-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Tips & Requirements
+              </h2>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Difficulty Level
+                </label>
+                <select
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  value={difficulty}
+                  onChange={e => setDifficulty(e.target.value as any)}
+                >
+                  <option value="beginner">🟢 Beginner - Anyone can join</option>
+                  <option value="easy">🟢 Easy - Minimal effort required</option>
+                  <option value="moderate">🟡 Moderate - Some fitness needed</option>
+                  <option value="intermediate">🟡 Intermediate - Good fitness level</option>
+                  <option value="advanced">🔴 Advanced - High fitness required</option>
+                  <option value="expert">🔴 Expert - Very demanding</option>
+                </select>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Help participants understand the physical demands
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Tips & Suggestions (Optional)
+                </label>
+                <textarea
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-h-[100px]"
+                  placeholder="e.g., Bring 100 leva spending money, warm clothes, suitable hiking shoes, water bottle..."
+                  value={tips}
+                  onChange={e => setTips(e.target.value)}
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  What should participants bring or know?
+                </p>
+              </div>
             </div>
 
             {/* Interests Section */}

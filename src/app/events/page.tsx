@@ -47,6 +47,7 @@ export default async function EventsPage({ searchParams }:{ searchParams: Promis
   const timeFilter = params.time ?? ''
   const sortBy = params.sort ?? 'soonest'
   const distanceFilter = params.distance ?? ''
+  const interestsFilter = params.interests?.split(',').filter(Boolean) || []
   
   // Get current user and events from people they follow
   const { data: { user } } = await supabase.auth.getUser()
@@ -76,6 +77,41 @@ export default async function EventsPage({ searchParams }:{ searchParams: Promis
     }
   }
   
+  // If interests filter is applied, we need to get events through the event_interests table
+  let eventIds: number[] | null = null
+  if (interestsFilter.length > 0) {
+    // First get the interest IDs from interest names
+    const { data: interestData } = await supabase
+      .from('interests')
+      .select('id')
+      .in('name', interestsFilter)
+    
+    if (interestData && interestData.length > 0) {
+      const interestIds = interestData.map(i => i.id)
+      
+      // Get events that have ALL selected interests
+      const { data: eventInterestData } = await supabase
+        .from('event_interests')
+        .select('event_id')
+        .in('interest_id', interestIds)
+      
+      if (eventInterestData && eventInterestData.length > 0) {
+        // Count occurrences of each event_id
+        const eventCounts = eventInterestData.reduce((acc, ei) => {
+          acc[ei.event_id] = (acc[ei.event_id] || 0) + 1
+          return acc
+        }, {} as Record<number, number>)
+        
+        // Filter to only events that have all selected interests
+        eventIds = Object.entries(eventCounts)
+          .filter(([_, count]) => count === interestIds.length)
+          .map(([id]) => Number(id))
+      } else {
+        eventIds = [] // No events found with these interests
+      }
+    }
+  }
+  
   let query = supabase
     .from('events')
     .select(`
@@ -83,9 +119,21 @@ export default async function EventsPage({ searchParams }:{ searchParams: Promis
       event_photos(storage_path),
       event_attendees(user_id),
       lat,
-      lng
+      lng,
+      event_interests(interest_id, interests(name))
     `)
     .eq('is_cancelled', false)
+    .gte('starts_at', new Date().toISOString())
+  
+  // Apply interests filter
+  if (eventIds !== null) {
+    if (eventIds.length === 0) {
+      // No events match the interest filter, return empty
+      query = query.eq('id', -1) as any // This will return no results
+    } else {
+      query = query.in('id', eventIds) as any
+    }
+  }
   
   // Apply time filter
   const dateRange = getDateRange(timeFilter)

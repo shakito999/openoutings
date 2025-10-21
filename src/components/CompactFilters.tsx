@@ -1,8 +1,11 @@
 "use client"
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
-import { INTERESTS, getInterestDisplay, searchInterests } from '@/lib/interestsBilingual'
+import { getInterestDisplay } from '@/lib/interestsBilingual'
+import { INTEREST_GROUPS, searchInterestsInGroups, getGroupDisplay } from '@/lib/interestGroups'
 import { useLanguage } from '@/contexts/LanguageContext'
+
+const STORAGE_KEY = 'event-filter-preferences'
 
 export default function CompactFilters() {
   const router = useRouter()
@@ -12,12 +15,62 @@ export default function CompactFilters() {
   const [searchQuery, setSearchQuery] = useState(params.get('q') ?? '')
   const [showInterestsDropdown, setShowInterestsDropdown] = useState(false)
   const [interestSearch, setInterestSearch] = useState('')
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const interestsRef = useRef<HTMLDivElement>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   const selectedInterests = params.get('interests')?.split(',').filter(Boolean) || []
   const currentTime = params.get('time') || ''
   const currentSort = params.get('sort') || 'soonest'
   const currentDistance = params.get('distance') || ''
+
+  // Load preferences from localStorage on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const preferences = JSON.parse(saved)
+        
+        // Only apply saved preferences if no URL params are set
+        const hasUrlParams = params.get('sort') || params.get('time') || params.get('distance') || params.get('interests')
+        
+        if (!hasUrlParams) {
+          const sp = new URLSearchParams()
+          if (preferences.sort) sp.set('sort', preferences.sort)
+          if (preferences.time) sp.set('time', preferences.time)
+          if (preferences.distance) sp.set('distance', preferences.distance)
+          if (preferences.interests) sp.set('interests', preferences.interests)
+          
+          if (sp.toString()) {
+            router.replace(`/events?${sp.toString()}`)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load filter preferences:', error)
+    }
+    setIsInitialized(true)
+  }, [])
+
+  // Save preferences to localStorage whenever they change
+  useEffect(() => {
+    if (!isInitialized) return
+    if (typeof window === 'undefined') return
+    
+    try {
+      const preferences = {
+        sort: currentSort !== 'soonest' ? currentSort : '',
+        time: currentTime,
+        distance: currentDistance,
+        interests: selectedInterests.join(',')
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences))
+    } catch (error) {
+      console.error('Failed to save filter preferences:', error)
+    }
+  }, [currentSort, currentTime, currentDistance, selectedInterests, isInitialized])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -52,9 +105,21 @@ export default function CompactFilters() {
     router.push(`/events?${sp.toString()}`)
   }
 
-  const filteredInterests = interestSearch 
-    ? searchInterests(interestSearch).map(i => i.canonical)
-    : INTERESTS
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(groupId)) {
+        next.delete(groupId)
+      } else {
+        next.add(groupId)
+      }
+      return next
+    })
+  }
+
+  const displayGroups = interestSearch 
+    ? searchInterestsInGroups(interestSearch, language)
+    : INTEREST_GROUPS
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
@@ -177,22 +242,61 @@ export default function CompactFilters() {
                 </div>
               )}
 
-              {/* Available interests */}
+              {/* Available interests - grouped */}
               <div className="overflow-y-auto p-2 max-h-64">
-                <div className="grid grid-cols-1 gap-1">
-                  {filteredInterests
-                    .filter(interest => !selectedInterests.includes(interest))
-                    .map(interest => (
-                      <button
-                        key={interest}
-                        onClick={() => toggleInterest(interest)}
-                        className="px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                      >
-                        {getInterestDisplay(interest, language)}
-                      </button>
-                    ))}
+                <div className="space-y-1">
+                  {displayGroups.map(group => {
+                    const isExpanded = expandedGroups.has(group.id) || interestSearch !== ''
+                    const availableInterests = group.interests.filter(i => !selectedInterests.includes(i))
+                    const groupSelectedCount = group.interests.filter(i => selectedInterests.includes(i)).length
+                    
+                    if (availableInterests.length === 0 && groupSelectedCount === 0) return null
+                    
+                    return (
+                      <div key={group.id} className="border-b border-gray-200 dark:border-gray-700 last:border-0">
+                        {/* Group Header */}
+                        <button
+                          onClick={() => toggleGroup(group.id)}
+                          className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                        >
+                          <span className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            <span className="text-base">{group.emoji}</span>
+                            <span>{getGroupDisplay(group.id, language)}</span>
+                            {groupSelectedCount > 0 && (
+                              <span className="px-1.5 py-0.5 bg-blue-600 text-white text-xs rounded-full">
+                                {groupSelectedCount}
+                              </span>
+                            )}
+                          </span>
+                          <svg
+                            className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        
+                        {/* Group Interests */}
+                        {isExpanded && availableInterests.length > 0 && (
+                          <div className="pl-8 pr-3 pb-2 space-y-1">
+                            {availableInterests.map(interest => (
+                              <button
+                                key={interest}
+                                onClick={() => toggleInterest(interest)}
+                                className="block w-full px-3 py-1.5 text-left text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                              >
+                                {getInterestDisplay(interest, language)}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
-                {filteredInterests.filter(i => !selectedInterests.includes(i)).length === 0 && (
+                {displayGroups.every(g => g.interests.filter(i => !selectedInterests.includes(i)).length === 0) && (
                   <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
                     {interestSearch ? 'Няма намерени' : 'Всички избрани'}
                   </p>

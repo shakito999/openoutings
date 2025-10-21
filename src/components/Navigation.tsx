@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
 import { useLanguage } from '@/contexts/LanguageContext'
+import NotificationBell from './NotificationBell'
 
 export default function Navigation() {
   const router = useRouter()
@@ -113,6 +114,9 @@ export default function Navigation() {
               </svg>
               <span className="uppercase">{language}</span>
             </button>
+
+            {/* Notification Bell */}
+            {user && <NotificationBell />}
             
             {user ? (
               <div className="flex items-center space-x-3">
