@@ -23,7 +23,7 @@ export default function JoinEventButton({ eventId }: { eventId: number }) {
         .select('*')
         .eq('event_id', eventId)
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
       
       setIsJoined(!!data)
     }

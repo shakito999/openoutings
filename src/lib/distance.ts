@@ -47,29 +47,48 @@ export function formatDistance(km: number): string {
  * Get user's current location
  * @returns Promise with coordinates or null if denied/unavailable
  */
-export function getUserLocation(): Promise<{ latitude: number; longitude: number } | null> {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      resolve(null)
-      return
+export async function getUserLocation(): Promise<{ latitude: number; longitude: number } | null> {
+  try {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      return null
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        })
-      },
-      (error) => {
-        console.error('Error getting location:', error)
-        resolve(null)
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 5000,
-        maximumAge: 300000 // Cache for 5 minutes
+    // Only proceed if permission is already granted to avoid implicit prompts
+    try {
+      const navAny = navigator as any
+      if (navAny.permissions?.query) {
+        const perm: PermissionStatus = await navAny.permissions.query({ name: 'geolocation' as any })
+        if (perm.state !== 'granted') {
+          return null
+        }
       }
-    )
-  })
+    } catch {
+      // If Permissions API is unavailable, fall back to attempting only when called from user action
+    }
+
+    return await new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          })
+        },
+        (error) => {
+          // Avoid noisy logs in production; keep it debug-level
+          if (typeof console !== 'undefined' && console.debug) {
+            console.debug('Geolocation error', { code: (error as any)?.code, message: (error as any)?.message })
+          }
+          resolve(null)
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 5000,
+          maximumAge: 300000, // Cache for 5 minutes
+        }
+      )
+    })
+  } catch {
+    return null
+  }
 }

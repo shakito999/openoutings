@@ -91,11 +91,23 @@ export default function Map({ center = [51.505, -0.09] as LatLngExpression, onPi
     }
   }
 
-  const handleMyLocation = () => {
+  const handleMyLocation = async () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser')
       return
     }
+
+    // Check permission to provide clearer feedback
+    try {
+      const navAny = navigator as any
+      if (navAny.permissions?.query) {
+        const perm: PermissionStatus = await navAny.permissions.query({ name: 'geolocation' as any })
+        if (perm.state === 'denied') {
+          alert('Location access is blocked. Please enable it in your browser settings for this site.')
+          return
+        }
+      }
+    } catch {}
     
     setGettingLocation(true)
     navigator.geolocation.getCurrentPosition(
@@ -110,11 +122,15 @@ export default function Map({ center = [51.505, -0.09] as LatLngExpression, onPi
         await reverseGeocode(lat, lng)
         setGettingLocation(false)
       },
-      (error) => {
-        console.error('Geolocation error:', error)
-        alert('Unable to get your location')
+      (error: GeolocationPositionError) => {
+        let msg = 'Unable to get your location'
+        if (error?.code === 1) msg = 'Permission denied for location'
+        else if (error?.code === 2) msg = 'Location unavailable'
+        else if (error?.code === 3) msg = 'Location request timed out'
+        alert(msg)
         setGettingLocation(false)
-      }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
     )
   }
 

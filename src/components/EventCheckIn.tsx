@@ -69,7 +69,7 @@ export default function EventCheckIn({ eventId, isHost }: EventCheckInProps) {
         .select('*')
         .eq('event_id', eventId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       setIsCheckedIn(!!checkin);
 
