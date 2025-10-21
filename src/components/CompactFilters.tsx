@@ -122,8 +122,8 @@ export default function CompactFilters() {
     : INTEREST_GROUPS
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-      <div className="flex flex-col sm:flex-row gap-3">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3">
+      <div className="flex flex-col sm:flex-row gap-2">
         {/* Search Input */}
         <div className="flex-1">
           <div className="relative">
@@ -132,7 +132,7 @@ export default function CompactFilters() {
             </svg>
             <input
               type="text"
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
               placeholder="Търси събития..."
               value={searchQuery}
               onChange={e => {
@@ -144,9 +144,9 @@ export default function CompactFilters() {
         </div>
 
         {/* Time Filter Dropdown */}
-        <div className="w-full sm:w-48">
+        <div className="w-full sm:w-44 relative">
           <select
-            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+            className="w-full pl-3 pr-8 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer text-sm appearance-none"
             value={currentTime}
             onChange={e => updateParam('time', e.target.value)}
           >
@@ -157,12 +157,15 @@ export default function CompactFilters() {
             <option value="thismonth">🗓️ Този месец</option>
             <option value="nextmonth">➡️ Следващ месец</option>
           </select>
+          <svg className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
 
         {/* Distance Filter */}
-        <div className="w-full sm:w-48">
+        <div className="w-full sm:w-44 relative">
           <select
-            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+            className="w-full pl-3 pr-8 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer text-sm appearance-none"
             value={currentDistance}
             onChange={e => updateParam('distance', e.target.value)}
           >
@@ -172,12 +175,15 @@ export default function CompactFilters() {
             <option value="25">📍 До 25 км</option>
             <option value="50">📍 До 50 км</option>
           </select>
+          <svg className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
 
         {/* Sort Dropdown */}
-        <div className="w-full sm:w-48">
+        <div className="w-full sm:w-44 relative">
           <select
-            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+            className="w-full pl-3 pr-8 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer text-sm appearance-none"
             value={currentSort}
             onChange={e => updateParam('sort', e.target.value)}
           >
@@ -186,13 +192,16 @@ export default function CompactFilters() {
             <option value="popular">🔥 Най-популярни</option>
             <option value="spots">💺 Най-много места</option>
           </select>
+          <svg className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
 
         {/* Interests Dropdown */}
-        <div className="relative w-full sm:w-56" ref={interestsRef}>
+        <div className="relative w-full sm:w-48" ref={interestsRef}>
           <button
             onClick={() => setShowInterestsDropdown(!showInterestsDropdown)}
-            className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all text-left flex items-center justify-between"
+            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all text-left flex items-center justify-between text-sm"
           >
             <span className="text-gray-700 dark:text-gray-300">
               🎯 Интереси {selectedInterests.length > 0 && `(${selectedInterests.length})`}
@@ -208,7 +217,7 @@ export default function CompactFilters() {
           </button>
 
           {showInterestsDropdown && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl z-50 max-h-96 overflow-hidden flex flex-col">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl z-50 max-h-80 overflow-hidden flex flex-col">
               {/* Search within interests */}
               <div className="p-3 border-b border-gray-200 dark:border-gray-700">
                 <input
@@ -243,7 +252,7 @@ export default function CompactFilters() {
               )}
 
               {/* Available interests - grouped */}
-              <div className="overflow-y-auto p-2 max-h-64">
+              <div className="overflow-y-auto p-2 max-h-48">
                 <div className="space-y-1">
                   {displayGroups.map(group => {
                     const isExpanded = expandedGroups.has(group.id) || interestSearch !== ''
