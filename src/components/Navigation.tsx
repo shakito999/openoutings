@@ -119,33 +119,25 @@ export default function Navigation() {
             {user && <NotificationBell />}
             
             {user ? (
-              <div className="flex items-center space-x-3">
-                <Link
-                  href={`/profile/${user.id}`}
-                  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  {profile?.avatar_url ? (
-                    <img
-                      src={profile.avatar_url}
-                      alt="Profile"
-                      className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                      {profile?.full_name?.[0] || user.email?.[0].toUpperCase()}
-                    </div>
-                  )}
-                  <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                    Профил
-                  </span>
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-medium"
-                >
-                  Излез
-                </button>
-              </div>
+              <Link
+                href={`/profile/${user.id}`}
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                {profile?.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    {profile?.full_name?.[0] || user.email?.[0].toUpperCase()}
+                  </div>
+                )}
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                  Профил
+                </span>
+              </Link>
             ) : (
               <Link
                 href="/login"
@@ -175,70 +167,71 @@ export default function Navigation() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden pb-4 space-y-2">
+          <div className="md:hidden pb-4 space-y-1 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border-t border-gray-200 dark:border-gray-700">
             <Link
               href="/events"
-              className="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="flex items-center px-4 py-3 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors font-medium"
               onClick={() => setMobileMenuOpen(false)}
             >
+              <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
               Events
             </Link>
             <Link
               href="/community"
-              className="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="flex items-center px-4 py-3 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors font-medium"
               onClick={() => setMobileMenuOpen(false)}
             >
+              <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM16 20H8a4 4 0 00-4 4v2h16v-2a4 4 0 00-4-4z" />
+              </svg>
               Community
             </Link>
             <Link
               href="/events/new"
-              className="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="flex items-center px-4 py-3 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors font-medium"
               onClick={() => setMobileMenuOpen(false)}
             >
+              <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
               Create Event
             </Link>
             <Link
               href="/polls/new"
-              className="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="flex items-center px-4 py-3 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors font-medium"
               onClick={() => setMobileMenuOpen(false)}
             >
+              <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 13v-1m4 1v-3m4 3v-1M8 19h8m-9-4h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v9a2 2 0 002 2z" />
+              </svg>
               New Poll
             </Link>
-            <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
+            <div className="pt-3 border-t border-gray-200 dark:border-gray-700 mt-2">
               {user ? (
-                <>
-                  <Link
-                    href={`/profile/${user.id}`}
-                    className="flex items-center px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt="Profile"
-                        className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700 mr-3"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">
-                        {profile?.full_name?.[0] || user.email?.[0].toUpperCase()}
-                      </div>
-                    )}
-                    Профил
-                  </Link>
-                  <button
-                    onClick={() => {
-                      handleSignOut()
-                      setMobileMenuOpen(false)
-                    }}
-                    className="w-full text-left px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    Излез
-                  </button>
-                </>
+                <Link
+                  href={`/profile/${user.id}`}
+                  className="flex items-center px-4 py-3 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700 mr-3"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">
+                      {profile?.full_name?.[0] || user.email?.[0].toUpperCase()}
+                    </div>
+                  )}
+                  <span>Профил</span>
+                </Link>
               ) : (
                 <Link
                   href="/login"
-                  className="block px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-center"
+                  className="flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Вход
