@@ -7,9 +7,10 @@ import EventDistance from './EventDistance'
 
 interface EventsWithDistanceProps {
   events: any[]
+  twoColumnMobile?: boolean
 }
 
-export default function EventsWithDistance({ events }: EventsWithDistanceProps) {
+export default function EventsWithDistance({ events, twoColumnMobile = false }: EventsWithDistanceProps) {
   const searchParams = useSearchParams()
   const distanceFilter = searchParams.get('distance')
   const [filteredEvents, setFilteredEvents] = useState(events)
@@ -57,15 +58,17 @@ export default function EventsWithDistance({ events }: EventsWithDistanceProps) 
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {filteredEvents.map((e: any) => (
+    <div className={`grid gap-6 ${
+      twoColumnMobile ? 'grid-cols-2 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+    }`}>
+        {filteredEvents.map((e: any) => (
         <Link
           href={`/events/${e.id}`}
           key={e.id}
           className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500"
         >
           {/* Image */}
-          <div className="h-48 relative overflow-hidden">
+          <div className="h-32 sm:h-48 relative overflow-hidden">
             <img
               src={e.event_photos?.[0]?.storage_path || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800'}
               alt={e.title}
@@ -87,13 +90,13 @@ export default function EventsWithDistance({ events }: EventsWithDistanceProps) 
           </div>
 
           {/* Content */}
-          <div className="p-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+          <div className="p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
               {e.title}
             </h2>
 
             {/* Time */}
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-3">
+            <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-3">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -106,30 +109,30 @@ export default function EventsWithDistance({ events }: EventsWithDistanceProps) 
 
             {/* Location */}
             {e.address && (
-              <div className="flex items-start text-sm text-gray-600 dark:text-gray-400 mb-4">
-                <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-start text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-3">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="line-clamp-2">{e.address}</span>
+                <span className="line-clamp-1 sm:line-clamp-2">{e.address}</span>
               </div>
             )}
 
             {/* Interests */}
             {e.event_interests && e.event_interests.length > 0 && (
-              <div className="mb-4">
-                <div className="flex flex-wrap gap-1.5">
-                  {e.event_interests.slice(0, 3).map((ei: any) => (
+              <div className="mb-2 sm:mb-3">
+                <div className="flex flex-wrap gap-1">
+                  {e.event_interests.slice(0, 2).map((ei: any) => (
                     <span
                       key={ei.interest_id}
-                      className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium"
+                      className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium"
                     >
                       {ei.interests?.name}
                     </span>
                   ))}
-                  {e.event_interests.length > 3 && (
-                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full text-xs font-medium">
-                      +{e.event_interests.length - 3}
+                  {e.event_interests.length > 2 && (
+                    <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full text-xs font-medium">
+                      +{e.event_interests.length - 2}
                     </span>
                   )}
                 </div>
@@ -138,9 +141,9 @@ export default function EventsWithDistance({ events }: EventsWithDistanceProps) 
 
             {/* Capacity */}
             {e.capacity && (
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Capacity</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{e.capacity} people</span>
+              <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-gray-200 dark:border-gray-700">
+                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Capacity</span>
+                <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">{e.capacity}</span>
               </div>
             )}
           </div>

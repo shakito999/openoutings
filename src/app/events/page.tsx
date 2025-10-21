@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import CompactFilters from '@/components/CompactFilters'
-import EventsWithDistance from '@/components/EventsWithDistance'
+import EventsSection from '@/components/EventsSection'
 import { createServerSupabase } from '@/lib/supabaseServer'
 
 function getDateRange(timeFilter: string) {
@@ -268,15 +268,11 @@ export default async function EventsPage({ searchParams }:{ searchParams: Promis
         )}
 
         {/* All Events */}
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {followedUsersEvents.length > 0 ? 'All Events' : 'Events'}
-          </h2>
-        </div>
-
-        {/* Events Grid */}
         {events && events.length > 0 ? (
-          <EventsWithDistance events={events} />
+          <EventsSection 
+            events={events} 
+            title={followedUsersEvents.length > 0 ? 'All Events' : 'Events'}
+          />
         ) : (
           <div className="text-center py-16">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
