@@ -2,10 +2,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
-import { INTERESTS, searchInterests, getInterestDisplay } from '@/lib/interestsBilingual'
+import { getInterestDisplay, searchInterests } from '@/lib/interestsBilingual'
+import { INTERESTS } from '@/lib/interestGroups'
 import InterestsPicker from '@/components/InterestsPicker'
 import { compressImage } from '@/lib/imageCompression'
 import { useLanguage } from '@/contexts/LanguageContext'
+import InterestQuiz from '@/components/InterestQuiz'
 
 export default function EditProfilePage() {
   const router = useRouter()
@@ -24,6 +26,7 @@ export default function EditProfilePage() {
   const [interests, setInterests] = useState<string[]>([])
   const [interestSearch, setInterestSearch] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showQuiz, setShowQuiz] = useState(false)
 
   useEffect(() => {
     loadProfile()
@@ -387,9 +390,19 @@ export default function EditProfilePage() {
 
             {/* Interests */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Интереси ({interests.length} избрани)
-              </label>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Интереси ({interests.length} избрани)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowQuiz(true)}
+                  className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium shadow-md flex items-center"
+                >
+                  <span className="mr-1.5">🎯</span>
+                  Квиз
+                </button>
+              </div>
               
               {/* Search box */}
               <div className="mb-3">
@@ -548,6 +561,36 @@ export default function EditProfilePage() {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Interest Quiz Modal */}
+        {showQuiz && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Откриј своите интереси
+                </h2>
+                <button
+                  onClick={() => setShowQuiz(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <InterestQuiz
+                onComplete={(newInterests) => {
+                  setInterests(newInterests)
+                  setShowQuiz(false)
+                }}
+                onSkip={() => setShowQuiz(false)}
+                language={language}
+              />
             </div>
           </div>
         )}

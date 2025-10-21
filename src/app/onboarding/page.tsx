@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
-import { INTERESTS, getInterestDisplay } from '@/lib/interestsBilingual'
+import { getInterestDisplay } from '@/lib/interestsBilingual'
+import { INTERESTS } from '@/lib/interestGroups'
 import { useLanguage } from '@/contexts/LanguageContext'
+import InterestQuiz from '@/components/InterestQuiz'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -19,6 +21,7 @@ export default function OnboardingPage() {
   // Step 2: Interests
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [interestSearch, setInterestSearch] = useState('')
+  const [showQuiz, setShowQuiz] = useState(false)
   
   // Check if user is logged in and if they've already completed onboarding
   useEffect(() => {
@@ -201,7 +204,7 @@ export default function OnboardingPage() {
             </>
           )}
           
-          {step === 2 && (
+          {step === 2 && !showQuiz && (
             <>
               <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4">
@@ -215,6 +218,32 @@ export default function OnboardingPage() {
                 <p className="text-gray-600 dark:text-gray-400">
                   Select at least one interest to help us recommend events
                 </p>
+              </div>
+              
+              {/* Quiz Option Banner */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border-2 border-purple-200 dark:border-purple-700">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-3xl">🎯</div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                        Вземи бърз квиз!
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Отговори на 6 въпроса и ние ще открием твоите интереси
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowQuiz(true)}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium shadow-md flex items-center whitespace-nowrap"
+                  >
+                    Започни квиз
+                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               
               <div className="space-y-4">
@@ -267,6 +296,33 @@ export default function OnboardingPage() {
                   </div>
                 </div>
               </div>
+            </>
+          )}
+          
+          {step === 2 && showQuiz && (
+            <>
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full mb-4">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                  Открий своите интереси
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Отговори на няколко въпроса за да разберем какво те вълнува
+                </p>
+              </div>
+              
+              <InterestQuiz
+                onComplete={(interests) => {
+                  setSelectedInterests(interests)
+                  setShowQuiz(false)
+                }}
+                onSkip={() => setShowQuiz(false)}
+                language={language}
+              />
             </>
           )}
           
