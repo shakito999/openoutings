@@ -111,12 +111,12 @@ export default function BuddyMatchesPage() {
       const attendeeIds = attendees.map((a) => a.user_id)
 
       // Get current user's profile, age, interests, and preferences
-      const { data: currentUserDataList } = await supabase
+      const { data: currentUserData } = await supabase
         .from('profiles')
         .select('id, name, avatar_url, gender')
-        .eq('id', userId)
+        .match({ id: userId })
+        .single()
 
-      const currentUserData = currentUserDataList && currentUserDataList.length > 0 ? currentUserDataList[0] : null
       if (!currentUserData) return
 
       // Get current user's age
@@ -159,8 +159,7 @@ export default function BuddyMatchesPage() {
       const { data: attendeeProfiles } = await supabase
         .from('profiles')
         .select('id, name, avatar_url, gender')
-        .in('id', attendeeIds)
-        .neq('id', userId)
+        .in('id', attendeeIds.filter(id => id !== userId))
 
       if (!attendeeProfiles || attendeeProfiles.length === 0) {
         setPotentialMatches([])
