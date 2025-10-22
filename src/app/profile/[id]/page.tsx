@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabaseServer'
 import ProfileHeader from '@/components/ProfileHeader'
 import ReviewsDisplay from '@/components/ReviewsDisplay'
+import ProfileEventsSection from '@/components/ProfileEventsSection'
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -103,42 +104,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
         {/* Hosted Events */}
         {hostedEvents && hostedEvents.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Организирани събития
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hostedEvents.map((event: any) => (
-                <Link
-                  key={event.id}
-                  href={`/events/${event.id}`}
-                  className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500"
-                >
-                  <div className="h-40 relative overflow-hidden">
-                    <img
-                      src={event.event_photos?.[0]?.storage_path || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800'}
-                      alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-                      {event.title}
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(event.starts_at).toLocaleDateString('bg-BG', {
-                        day: 'numeric',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
+          <ProfileEventsSection title="Организирани събития" events={hostedEvents} />
         )}
 
         {/* Created Polls */}
@@ -188,42 +154,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
         {/* Joined Events */}
         {joinedEvents && joinedEvents.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Присъединени събития
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {joinedEvents.map((event: any) => (
-                <Link
-                  key={event.id}
-                  href={`/events/${event.id}`}
-                    className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500"
-                  >
-                    <div className="h-40 relative overflow-hidden">
-                      <img
-                        src={event.event_photos?.[0]?.storage_path || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800'}
-                        alt={event.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-                        {event.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {new Date(event.starts_at).toLocaleDateString('bg-BG', {
-                          day: 'numeric',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                    </div>
-                  </Link>
-              ))}
-            </div>
-          </div>
+          <ProfileEventsSection title="Присъединени събития" events={joinedEvents} />
         )}
 
         {/* Suggested Events - shown when user has no events but has interests */}
