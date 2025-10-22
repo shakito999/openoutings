@@ -181,9 +181,10 @@ export async function GET(request: NextRequest) {
     // Filter out users who already have matches with current user
     const { data: existingMatches } = await supabase
       .from('buddy_matches')
-      .select('user_id_1, user_id_2')
+      .select('user_id_1, user_id_2, status')
       .eq('event_id', eventId)
       .or(`user_id_1.eq.${user.id},user_id_2.eq.${user.id}`)
+      .in('status', ['pending', 'accepted'])
 
     const matchedUserIds = new Set(
       existingMatches?.flatMap((m) => [m.user_id_1, m.user_id_2]) || []

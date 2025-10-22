@@ -226,9 +226,10 @@ export default function BuddyMatchesPage() {
       // Filter out users who already have matches with current user
       const { data: existingMatches } = await supabase
         .from('buddy_matches')
-        .select('user_id_1, user_id_2')
+        .select('user_id_1, user_id_2, status')
         .eq('event_id', selectedEventId)
         .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`)
+        .in('status', ['pending', 'accepted'])
 
       const matchedUserIds = new Set(
         existingMatches?.flatMap((m) => [m.user_id_1, m.user_id_2]) || []
@@ -337,6 +338,7 @@ export default function BuddyMatchesPage() {
       if (response.ok) {
         setToast({ message: 'Match declined', type: 'info' })
         fetchMyMatches()
+        fetchPotentialMatches()
       }
     } catch (error) {
       console.error('Failed to decline match:', error)
@@ -358,6 +360,7 @@ export default function BuddyMatchesPage() {
       if (response.ok) {
         setToast({ message: 'Match cancelled', type: 'info' })
         fetchMyMatches()
+        fetchPotentialMatches()
       }
     } catch (error) {
       console.error('Failed to cancel match:', error)
