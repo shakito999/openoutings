@@ -59,15 +59,14 @@ export async function POST(request: NextRequest) {
     const [userId1, userId2] = [user.id, targetUserId].sort()
 
     // Check if match already exists
-    const { data: existingMatch } = await supabase
+    const { data: existingMatchList } = await supabase
       .from('buddy_matches')
       .select('*')
       .eq('event_id', eventId)
       .eq('user_id_1', userId1)
       .eq('user_id_2', userId2)
-      .single()
 
-    if (existingMatch) {
+    if (existingMatchList && existingMatchList.length > 0) {
       return NextResponse.json(
         { error: 'Match request already exists' },
         { status: 409 }

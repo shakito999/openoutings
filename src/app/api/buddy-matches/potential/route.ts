@@ -41,12 +41,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify event exists and get attendees
-    const { data: event, error: eventError } = await supabase
+    const { data: eventList, error: eventError } = await supabase
       .from('events')
       .select('id, title')
       .eq('id', eventId)
-      .single()
 
+    const event = eventList && eventList.length > 0 ? eventList[0] : null
     if (eventError || !event) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 })
     }
@@ -68,12 +68,12 @@ export async function GET(request: NextRequest) {
     const attendeeIds = attendees.map((a) => a.user_id)
 
     // Get current user's profile, age, interests, and preferences
-    const { data: currentUserData, error: currentUserError } = await supabase
+    const { data: currentUserDataList, error: currentUserError } = await supabase
       .from('profiles')
       .select('id, name, avatar_url, gender')
       .eq('id', user.id)
-      .single()
 
+    const currentUserData = currentUserDataList && currentUserDataList.length > 0 ? currentUserDataList[0] : null
     if (currentUserError || !currentUserData) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
