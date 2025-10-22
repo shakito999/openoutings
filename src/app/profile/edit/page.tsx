@@ -21,6 +21,10 @@ export default function EditProfilePage() {
   const [fullName, setFullName] = useState('')
   const [username, setUsername] = useState('')
   const [bio, setBio] = useState('')
+  const [birthDate, setBirthDate] = useState('')
+  const [gender, setGender] = useState('')
+  const [showAge, setShowAge] = useState(false)
+  const [showGender, setShowGender] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState('')
   const [coverUrl, setCoverUrl] = useState('')
   const [interests, setInterests] = useState<string[]>([])
@@ -63,6 +67,10 @@ export default function EditProfilePage() {
       setBio(profile.bio || '')
       setAvatarUrl(profile.avatar_url || '')
       setCoverUrl(profile.cover_url || '')
+      setBirthDate(profile.birth_date || '')
+      setGender(profile.gender || '')
+      setShowAge(profile.show_age || false)
+      setShowGender(profile.show_gender || false)
       setInterests(profile.user_interests?.map((ui: any) => ui.interests.name) || [])
     }
   }
@@ -164,7 +172,11 @@ export default function EditProfilePage() {
           username: username || user.email?.split('@')[0] || 'user',
           bio: bio,
           avatar_url: avatarUrl,
-          cover_url: coverUrl
+          cover_url: coverUrl,
+          birth_date: birthDate || null,
+          gender: gender || null,
+          show_age: showAge,
+          show_gender: showGender
         })
 
       if (profileError) throw profileError
@@ -375,6 +387,72 @@ export default function EditProfilePage() {
               />
             </div>
 
+            {/* Birth Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Дата на раждане (Опционално)
+              </label>
+              <input
+                type="date"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                value={birthDate}
+                onChange={e => setBirthDate(e.target.value)}
+                min="1900-01-01"
+                max={new Date().toISOString().split('T')[0]}
+              />
+              {birthDate && (
+                <label className="flex items-center mt-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showAge}
+                    onChange={e => setShowAge(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                    Покажи възраст публично на профила ми
+                  </span>
+                </label>
+              )}
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Помага ни да персонализираме изживяването ти
+              </p>
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Пол (Опционално)
+              </label>
+              <select
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                value={gender}
+                onChange={e => setGender(e.target.value)}
+              >
+                <option value="">Избери...</option>
+                <option value="male">Мъж</option>
+                <option value="female">Жена</option>
+                <option value="non-binary">Небинарен</option>
+                <option value="other">Друго</option>
+                <option value="prefer-not-to-say">Предпочитам да не казвам</option>
+              </select>
+              {gender && gender !== 'prefer-not-to-say' && (
+                <label className="flex items-center mt-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showGender}
+                    onChange={e => setShowGender(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  />
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                    Покажи пол публично на профила ми
+                  </span>
+                </label>
+              )}
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Помага за по-добро съчетаване с други участници
+              </p>
+            </div>
+
             {/* Bio */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -571,7 +649,7 @@ export default function EditProfilePage() {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8 border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Откриј своите интереси
+                  Открий своите интереси
                 </h2>
                 <button
                   onClick={() => setShowQuiz(false)}

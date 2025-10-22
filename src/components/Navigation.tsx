@@ -93,6 +93,9 @@ export default function Navigation() {
             <Link href="/community" className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">
               Community
             </Link>
+            <Link href="/buddy-matches" className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">
+              Buddies
+            </Link>
             <Link href="/events/new" className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">
               Create Event
             </Link>
@@ -187,6 +190,16 @@ export default function Navigation() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM16 20H8a4 4 0 00-4 4v2h16v-2a4 4 0 00-4-4z" />
               </svg>
               Community
+            </Link>
+            <Link
+              href="/buddy-matches"
+              className="flex items-center px-4 py-3 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 8.308 4 4 0 010-8.308M15 21H9a6 6 0 016-6h.01a6 6 0 016 6" />
+              </svg>
+              Buddies
             </Link>
             <Link
               href="/events/new"

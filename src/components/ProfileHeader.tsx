@@ -38,6 +38,31 @@ export default function ProfileHeader({
     })
   }, [profileId])
 
+  // Helpers for displaying age and gender when allowed
+  const computeAge = (birthDate?: string) => {
+    if (!birthDate) return null
+    const dob = new Date(birthDate)
+    if (isNaN(dob.getTime())) return null
+    const today = new Date()
+    let age = today.getFullYear() - dob.getFullYear()
+    const m = today.getMonth() - dob.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--
+    return age >= 0 ? age : null
+  }
+
+  const genderDisplay: Record<string, string> = {
+    'male': 'Мъж',
+    'female': 'Жена',
+    'non-binary': 'Небинарен',
+    'other': 'Друго',
+    'prefer-not-to-say': ''
+  }
+
+  const showAge = Boolean(profile?.show_age && profile?.birth_date)
+  const showGender = Boolean(profile?.show_gender && profile?.gender && profile?.gender !== 'prefer-not-to-say')
+  const age = showAge ? computeAge(profile.birth_date) : null
+  const genderText = showGender ? genderDisplay[profile.gender] ?? '' : ''
+
   if (!mounted) {
     return null
   }
@@ -59,7 +84,7 @@ export default function ProfileHeader({
 
       <div className="px-8 pb-8">
         {/* Avatar and Basic Info */}
-        <div className="flex flex-col sm:flex-row sm:items-end -mt-16 mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end -mt-12 md:-mt-8 lg:mt-0 mb-6 gap-4">
           <div className="flex-1 flex flex-col sm:flex-row sm:items-end gap-4">
             <div className="relative">
               {profile.avatar_url ? (
@@ -81,6 +106,17 @@ export default function ProfileHeader({
               </h1>
               {profile.username && (
                 <p className="text-gray-600 dark:text-gray-400">@{profile.username}</p>
+              )}
+              {(age !== null || genderText) && (
+                <div className="mt-1 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  {age !== null && (
+                    <span>{age} г.</span>
+                  )}
+                  {age !== null && genderText && <span>•</span>}
+                  {genderText && (
+                    <span>{genderText}</span>
+                  )}
+                </div>
               )}
             </div>
           </div>

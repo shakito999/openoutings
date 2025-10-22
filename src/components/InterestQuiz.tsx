@@ -93,6 +93,7 @@ export default function InterestQuiz({ onComplete, onSkip }: InterestQuizProps) 
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [showResults, setShowResults] = useState(false)
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
+  const [removedInterests, setRemovedInterests] = useState<Set<string>>(new Set())
 
   const handleAnswer = (optionIndex: number) => {
     const question = QUIZ_QUESTIONS[currentQuestion]
@@ -141,8 +142,15 @@ export default function InterestQuiz({ onComplete, onSkip }: InterestQuizProps) 
     setShowResults(true)
   }
 
+  const handleRemoveInterest = (interest: string) => {
+    const newRemoved = new Set(removedInterests)
+    newRemoved.add(interest)
+    setRemovedInterests(newRemoved)
+  }
+
   const handleConfirmResults = () => {
-    onComplete(selectedInterests)
+    const finalInterests = selectedInterests.filter(i => !removedInterests.has(i))
+    onComplete(finalInterests)
   }
 
   const handleRetake = () => {
@@ -150,6 +158,7 @@ export default function InterestQuiz({ onComplete, onSkip }: InterestQuizProps) 
     setAnswers({})
     setShowResults(false)
     setSelectedInterests([])
+    setRemovedInterests(new Set())
   }
 
   const progress = ((currentQuestion + 1) / QUIZ_QUESTIONS.length) * 100
@@ -174,20 +183,31 @@ export default function InterestQuiz({ onComplete, onSkip }: InterestQuizProps) 
 
         {/* Selected Interests */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
             <span className="mr-2">✨</span>
-            Твоите препоръчани интереси ({selectedInterests.length})
+            Твоите интереси ({selectedInterests.length - removedInterests.size})
           </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Кликни на X за да премахнеш ненужни интереси
+          </p>
           <div className="flex flex-wrap gap-2">
             {selectedInterests.map((interest) => {
+              if (removedInterests.has(interest)) return null
               const group = INTEREST_GROUPS.find(g => g.interests.includes(interest))
               return (
                 <div
                   key={interest}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-sm font-medium shadow-md shadow-blue-500/30 flex items-center gap-2"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full text-sm font-medium shadow-md shadow-blue-500/30 flex items-center gap-2 group"
                 >
                   {group && <span>{group.emoji}</span>}
                   <span>{interest}</span>
+                  <button
+                    onClick={() => handleRemoveInterest(interest)}
+                    className="ml-1 opacity-70 hover:opacity-100 transition-opacity flex items-center justify-center w-5 h-5 rounded-full hover:bg-white/30"
+                    title="Премахни"
+                  >
+                    ✕
+                  </button>
                 </div>
               )
             })}
@@ -247,15 +267,15 @@ export default function InterestQuiz({ onComplete, onSkip }: InterestQuizProps) 
       </div>
 
       {/* Options */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         {question.options.map((option, index) => (
           <button
             key={index}
             onClick={() => handleAnswer(index)}
-            className="group p-6 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all transform hover:-translate-y-1"
+            className="group p-3 sm:p-6 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-lg transition-all transform hover:-translate-y-1"
           >
-            <div className="text-4xl mb-3">{option.emoji}</div>
-            <p className="text-gray-900 dark:text-white font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <div className="text-2xl sm:text-4xl mb-2 sm:mb-3">{option.emoji}</div>
+            <p className="text-sm sm:text-base text-gray-900 dark:text-white font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {option.text}
             </p>
           </button>

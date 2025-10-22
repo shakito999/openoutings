@@ -17,6 +17,7 @@ export default function OnboardingPage() {
   // Step 1: Profile Info
   const [fullName, setFullName] = useState('')
   const [bio, setBio] = useState('')
+  const [birthDate, setBirthDate] = useState('')
   
   // Step 2: Interests
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
@@ -36,7 +37,7 @@ export default function OnboardingPage() {
       // Check if profile is complete
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, bio, onboarding_completed')
+        .select('full_name, bio, birth_date, onboarding_completed')
         .eq('id', user.id)
         .single()
       
@@ -48,6 +49,7 @@ export default function OnboardingPage() {
       // Pre-fill existing data
       if (profile?.full_name) setFullName(profile.full_name)
       if (profile?.bio) setBio(profile.bio)
+      if (profile?.birth_date) setBirthDate(profile.birth_date)
     }
     
     checkUser()
@@ -66,7 +68,8 @@ export default function OnboardingPage() {
         .from('profiles')
         .update({
           full_name: fullName,
-          bio: bio || null
+          bio: bio || null,
+          birth_date: birthDate || null
         })
         .eq('id', userId)
       
@@ -187,6 +190,23 @@ export default function OnboardingPage() {
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
                   />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Birth Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    value={birthDate}
+                    onChange={e => setBirthDate(e.target.value)}
+                    min="1900-01-01"
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Helps us personalize your experience and match you with peers
+                  </p>
                 </div>
                 
                 <div>
