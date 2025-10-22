@@ -119,29 +119,34 @@ export default function BuddyMatchesPage() {
       // Get current user's profile, age, interests, and preferences
       const { data: currentUserData } = await supabase
         .from('profiles')
-        .select('id, name, avatar_url, gender')
-.eq('id', userId)
+        .select('id, full_name, username, avatar_url, gender, birth_date')
+        .eq('id', userId)
         .single()
 
       if (!currentUserData) return
 
-      // Get current user's age
-      const { data: currentUserAgeData } = await supabase
-        .from('user_age')
-        .select('birth_year')
-        .eq('user_id', userId)
-
-      const currentAge = currentUserAgeData && currentUserAgeData.length > 0 && currentUserAgeData[0]?.birth_year
-        ? new Date().getFullYear() - currentUserAgeData[0].birth_year
-        : null
+      // Compute current user's age from birth_date
+      const currentAge = (() => {
+        const bd = currentUserData?.birth_date
+        if (!bd) return null
+        const dob = new Date(bd)
+        if (isNaN(dob.getTime())) return null
+        const today = new Date()
+        let age = today.getFullYear() - dob.getFullYear()
+        const m = today.getMonth() - dob.getMonth()
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--
+        return age
+      })()
 
       // Get current user's interests
       const { data: currentUserInterests } = await supabase
         .from('user_interests')
-        .select('interest')
+        .select('interests(name)')
         .eq('user_id', userId)
 
-      const currentInterests = currentUserInterests?.map((i) => i.interest) || []
+      const currentInterests = (currentUserInterests || [])
+        .map((i: any) => i.interests?.name)
+        .filter(Boolean)
 
       // Get current user's preferences
       const { data: currentUserPreferencesData } = await supabase
@@ -153,18 +158,18 @@ export default function BuddyMatchesPage() {
 
       const currentUser: UserForMatching = {
         id: currentUserData.id,
-        name: currentUserData.name,
+        name: currentUserData.full_name || currentUserData.username,
         avatar_url: currentUserData.avatar_url,
         gender: currentUserData.gender,
         age: currentAge,
-        interests: currentInterests,
+        interests: currentInterests as string[],
         preferences: currentUserPreferences || null,
       }
 
       // Get all attendees' profiles, ages, interests, and preferences
       const { data: attendeeProfiles } = await supabase
         .from('profiles')
-        .select('id, name, avatar_url, gender')
+        .select('id, full_name, username, avatar_url, gender, birth_date')
         .in('id', otherAttendeeIds)
 
       if (!attendeeProfiles || attendeeProfiles.length === 0) {
@@ -172,15 +177,10 @@ export default function BuddyMatchesPage() {
         return
       }
 
-      // Fetch ages, interests, and preferences for other attendees
-      const { data: ages } = await supabase
-        .from('user_age')
-        .select('user_id, birth_year')
-        .in('user_id', otherAttendeeIds)
-
+      // Fetch interests and preferences for other attendees
       const { data: interests } = await supabase
         .from('user_interests')
-        .select('user_id, interest')
+        .select('user_id, interests(name)')
         .in('user_id', otherAttendeeIds)
 
       const { data: preferences } = await supabase
@@ -189,25 +189,37 @@ export default function BuddyMatchesPage() {
         .in('user_id', otherAttendeeIds)
 
       // Build UserForMatching objects
-      const ageMap = new Map(ages?.map((a) => [a.user_id, a.birth_year]))
       const interestsMap = new Map<string, string[]>()
-      interests?.forEach((i) => {
+      ;(interests || []).forEach((i: any) => {
         const existing = interestsMap.get(i.user_id) || []
-        interestsMap.set(i.user_id, [...existing, i.interest])
+        const name = i.interests?.name
+        if (name) interestsMap.set(i.user_id, [...existing, name])
       })
-      const preferencesMap = new Map(preferences?.map((p) => [p.user_id, p]))
+      const preferencesMap = new Map((preferences || []).map((p: any) => [p.user_id, p]))
 
-      const allUsers: UserForMatching[] = attendeeProfiles.map((profile) => ({
-        id: profile.id,
-        name: profile.name,
-        avatar_url: profile.avatar_url,
-        gender: profile.gender,
-        age: ageMap.get(profile.id)
-          ? new Date().getFullYear() - ageMap.get(profile.id)!
-          : null,
-        interests: interestsMap.get(profile.id) || [],
-        preferences: preferencesMap.get(profile.id) || null,
-      }))
+      const allUsers: UserForMatching[] = (attendeeProfiles || []).map((profile: any) => {
+        const bd = profile.birth_date
+        let age: number | null = null
+        if (bd) {
+          const dob = new Date(bd)
+          if (!isNaN(dob.getTime())) {
+            const today = new Date()
+            let a = today.getFullYear() - dob.getFullYear()
+            const m = today.getMonth() - dob.getMonth()
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) a--
+            age = a
+          }
+        }
+        return {
+          id: profile.id,
+          name: profile.full_name || profile.username,
+          avatar_url: profile.avatar_url,
+          gender: profile.gender,
+          age,
+          interests: interestsMap.get(profile.id) || [],
+          preferences: preferencesMap.get(profile.id) || null,
+        }
+      })
 
       // Filter out users who already have matches with current user
       const { data: existingMatches } = await supabase

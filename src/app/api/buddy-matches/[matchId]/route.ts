@@ -83,7 +83,7 @@ export async function PATCH(
       const otherUserId = isUser1 ? match.user_id_2 : match.user_id_1
       await supabase.from('notifications').insert({
         user_id: otherUserId,
-        type: 'buddy_match_declined',
+        type: 'event_updated',
         title: 'Buddy match declined',
         message: `Your buddy match request was declined`,
         related_event_id: match.event_id,
@@ -121,7 +121,7 @@ export async function PATCH(
       const otherUserId = isUser1 ? match.user_id_2 : match.user_id_1
       await supabase.from('notifications').insert({
         user_id: otherUserId,
-        type: 'buddy_match_accepted',
+        type: 'event_updated',
         title: 'Buddy match confirmed!',
         message: `Your buddy match has been confirmed`,
         related_event_id: match.event_id,
@@ -210,7 +210,7 @@ export async function DELETE(
     const otherUserId = match.user_id_1 === user.id ? match.user_id_2 : match.user_id_1
     await supabase.from('notifications').insert({
       user_id: otherUserId,
-      type: 'buddy_match_cancelled',
+      type: 'event_updated',
       title: 'Buddy match cancelled',
       message: `Your buddy match was cancelled`,
       related_event_id: match.event_id,

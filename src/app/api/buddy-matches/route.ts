@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     const otherUserId = user.id === userId1 ? userId2 : userId1
     await supabase.from('notifications').insert({
       user_id: otherUserId,
-      type: 'buddy_match_request',
+      type: 'event_updated',
       title: 'New buddy match request',
       message: `Someone wants to be your buddy at an event!`,
       related_event_id: eventId,
@@ -179,10 +179,20 @@ export async function GET(request: NextRequest) {
 
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, name, avatar_url, gender')
+      .select('id, full_name, username, avatar_url, gender')
       .in('id', Array.from(userIds))
 
-    const profileMap = new Map(profiles?.map((p) => [p.id, p]))
+    const profileMap = new Map(
+      (profiles || []).map((p: any) => [
+        p.id,
+        {
+          id: p.id,
+          name: p.full_name || p.username,
+          avatar_url: p.avatar_url,
+          gender: p.gender,
+        },
+      ])
+    )
 
     // Enrich matches with profile data
     const enrichedMatches = matches?.map((match) => ({
