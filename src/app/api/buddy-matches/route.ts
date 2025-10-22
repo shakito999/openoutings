@@ -61,12 +61,51 @@ export async function POST(request: NextRequest) {
     // Check if match already exists
     const { data: existingMatchList } = await supabase
       .from('buddy_matches')
-      .select('*')
+      .select('id, status, user_id_1, user_id_2')
       .eq('event_id', eventId)
       .eq('user_id_1', userId1)
       .eq('user_id_2', userId2)
 
     if (existingMatchList && existingMatchList.length > 0) {
+      const existing = existingMatchList[0]
+      // If previous match was cancelled or declined, reactivate it instead of creating a new row
+      if (existing.status === 'cancelled' || existing.status === 'declined') {
+        const user1Accepted = user.id === userId1
+        const user2Accepted = user.id === userId2
+
+        const { data: reactivated, error: reactivateError } = await supabase
+          .from('buddy_matches')
+          .update({
+            status: 'pending',
+            compatibility_score: compatibilityScore || null,
+            user_1_accepted: user1Accepted,
+            user_2_accepted: user2Accepted,
+          })
+          .eq('id', existing.id)
+          .select()
+          .single()
+
+        if (reactivateError) {
+          return NextResponse.json(
+            { error: 'Failed to re-send match request' },
+            { status: 500 }
+          )
+        }
+
+        // Notify the other user
+        const otherUserId = user1Accepted ? userId2 : userId1
+        await supabase.from('notifications').insert({
+          user_id: otherUserId,
+          type: 'event_updated',
+          title: 'New buddy match request',
+          message: `Someone wants to be your buddy at an event!`,
+          related_event_id: eventId,
+        })
+
+        return NextResponse.json({ match: reactivated }, { status: 200 })
+      }
+
+      // Otherwise, an active request exists
       return NextResponse.json(
         { error: 'Match request already exists' },
         { status: 409 }
