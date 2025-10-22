@@ -120,7 +120,7 @@ export default function BuddyMatchesPage() {
       const { data: currentUserData } = await supabase
         .from('profiles')
         .select('id, name, avatar_url, gender')
-        .match({ id: userId })
+.eq('id', userId)
         .single()
 
       if (!currentUserData) return
