@@ -6,11 +6,13 @@ import { supabase } from '@/lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
 import { useLanguage } from '@/contexts/LanguageContext'
 import NotificationBell from './NotificationBell'
+import { useI18n } from '@/i18n'
 
 export default function Navigation() {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const { language, toggleLanguage } = useLanguage()
+  const { t } = useI18n()
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<any>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -88,19 +90,19 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             <Link href="/events" className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">
-              Events
+              {t('nav.events')}
             </Link>
             <Link href="/community" className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">
-              Community
+              {t('nav.community')}
             </Link>
             <Link href="/buddy-matches" className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">
-              Buddies
+              {t('nav.buddies')}
             </Link>
             <Link href="/events/new" className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">
-              Create Event
+              {t('nav.createEvent')}
             </Link>
             <Link href="/polls/new" className="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium">
-              New Poll
+              {t('nav.newPoll')}
             </Link>
           </div>
 
@@ -110,7 +112,7 @@ export default function Navigation() {
             <button
               onClick={toggleLanguage}
               className="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center space-x-1"
-              title="Switch language"
+              title={t('nav.switchLanguage')}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
@@ -129,7 +131,7 @@ export default function Navigation() {
                 {profile?.avatar_url ? (
                   <img
                     src={profile.avatar_url}
-                    alt="Profile"
+                    alt={t('nav.profile')}
                     className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
                   />
                 ) : (
@@ -138,7 +140,7 @@ export default function Navigation() {
                   </div>
                 )}
                 <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                  Профил
+                  {t('nav.profile')}
                 </span>
               </Link>
             ) : (
@@ -146,7 +148,7 @@ export default function Navigation() {
                 href="/login"
                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium shadow-lg shadow-blue-500/30"
               >
-                Вход
+                {t('nav.login')}
               </Link>
             )}
           </div>
@@ -179,7 +181,7 @@ export default function Navigation() {
               <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Events
+              {t('nav.events')}
             </Link>
             <Link
               href="/community"
@@ -189,7 +191,7 @@ export default function Navigation() {
               <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM16 20H8a4 4 0 00-4 4v2h16v-2a4 4 0 00-4-4z" />
               </svg>
-              Community
+              {t('nav.community')}
             </Link>
             <Link
               href="/buddy-matches"
@@ -199,7 +201,7 @@ export default function Navigation() {
               <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 8.308 4 4 0 010-8.308M15 21H9a6 6 0 016-6h.01a6 6 0 016 6" />
               </svg>
-              Buddies
+              {t('nav.buddies')}
             </Link>
             <Link
               href="/events/new"
@@ -209,7 +211,7 @@ export default function Navigation() {
               <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              Create Event
+              {t('nav.createEvent')}
             </Link>
             <Link
               href="/polls/new"
@@ -217,9 +219,9 @@ export default function Navigation() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <svg className="w-5 h-5 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 13v-1m4 1v-3m4 3v-1M8 19h8m-9-4h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v9a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 13v-1m4 1v-3m4 3v-1M8 19h8m-9-4h10a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2z" />
               </svg>
-              New Poll
+              {t('nav.newPoll')}
             </Link>
             <div className="pt-3 border-t border-gray-200 dark:border-gray-700 mt-2">
               {user ? (
@@ -231,7 +233,7 @@ export default function Navigation() {
                   {profile?.avatar_url ? (
                     <img
                       src={profile.avatar_url}
-                      alt="Profile"
+                      alt={t('nav.profile')}
                       className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700 mr-3"
                     />
                   ) : (
@@ -239,7 +241,7 @@ export default function Navigation() {
                       {profile?.full_name?.[0] || user.email?.[0].toUpperCase()}
                     </div>
                   )}
-                  <span>Профил</span>
+                  <span>{t('nav.profile')}</span>
                 </Link>
               ) : (
                 <Link
@@ -247,7 +249,7 @@ export default function Navigation() {
                   className="flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Вход
+                  {t('nav.login')}
                 </Link>
               )}
             </div>

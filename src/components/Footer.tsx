@@ -1,6 +1,9 @@
+"use client"
 import Link from 'next/link'
+import { useI18n } from '@/i18n'
 
 export default function Footer() {
+  const { t } = useI18n()
   return (
     <footer className="mt-auto border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -16,27 +19,27 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm max-w-md">
-              Connect with friends and discover exciting group activities. Create events, organize polls, and make the most of your social life.
+              {t('footer.tagline')}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t('footer.quickLinks')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/events" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors">
-                  Browse Events
+                  {t('footer.browseEvents')}
                 </Link>
               </li>
               <li>
                 <Link href="/events/new" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors">
-                  Create Event
+                  {t('footer.createEvent')}
                 </Link>
               </li>
               <li>
                 <Link href="/polls/new" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors">
-                  Create Poll
+                  {t('footer.createPoll')}
                 </Link>
               </li>
             </ul>
@@ -44,21 +47,21 @@ export default function Footer() {
 
           {/* Support */}
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Support</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t('footer.support')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/about" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors">
-                  About Us
+                  {t('footer.aboutUs')}
                 </Link>
               </li>
               <li>
                 <Link href="/faq" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors">
-                  FAQ
+                  {t('footer.faq')}
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors">
-                  Contact
+                  {t('footer.contact')}
                 </Link>
               </li>
             </ul>
@@ -66,16 +69,16 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Legal</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">{t('footer.legal')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/privacy" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors">
-                  Privacy Policy
+                  {t('footer.privacyPolicy')}
                 </Link>
               </li>
               <li>
                 <Link href="/terms" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-colors">
-                  Terms of Service
+                  {t('footer.termsOfService')}
                 </Link>
               </li>
             </ul>
@@ -84,7 +87,7 @@ export default function Footer() {
 
         <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <p className="text-gray-600 dark:text-gray-400 text-sm">
-            © {new Date().getFullYear()} OpenOutings. All rights reserved.
+            © {new Date().getFullYear()} OpenOutings. {t('footer.allRightsReserved')}
           </p>
           <div className="flex space-x-6">
             <a href="#" className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">

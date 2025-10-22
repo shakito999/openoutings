@@ -1,10 +1,23 @@
 "use client"
-import { LanguageProvider } from '@/contexts/LanguageContext'
+import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext'
+import { useEffect } from 'react'
+
+function HtmlLangSync({ children }: { children: React.ReactNode }) {
+  const { language } = useLanguage()
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = language
+    }
+  }, [language])
+  return <>{children}</>
+}
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <LanguageProvider>
-      {children}
+      <HtmlLangSync>
+        {children}
+      </HtmlLangSync>
     </LanguageProvider>
   )
 }
