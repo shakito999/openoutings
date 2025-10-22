@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
 import { findPotentialMatches } from '@/lib/buddyMatching'
 import { PotentialMatch, BuddyMatchWithProfiles, UserForMatching } from '@/lib/types/buddyMatching'
+import Toast from '@/components/Toast'
 
 export default function BuddyMatchesPage() {
   const router = useRouter()
@@ -15,6 +16,7 @@ export default function BuddyMatchesPage() {
   const [potentialMatches, setPotentialMatches] = useState<PotentialMatch[]>([])
   const [myMatches, setMyMatches] = useState<BuddyMatchWithProfiles[]>([])
   const [userId, setUserId] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' | 'info' } | null>(null)
 
   useEffect(() => {
     checkAuth()
@@ -282,12 +284,12 @@ export default function BuddyMatchesPage() {
       })
 
       if (response.ok) {
-        alert('Match request sent!')
+        setToast({ message: 'Match request sent!', type: 'success' })
         fetchPotentialMatches()
         fetchMyMatches()
       } else {
         const error = await response.json()
-        alert(error.error || 'Failed to send match request')
+        setToast({ message: error.error || 'Failed to send match request', type: 'error' })
       }
     } catch (error) {
       console.error('Failed to send match request:', error)
@@ -310,7 +312,7 @@ export default function BuddyMatchesPage() {
       })
 
       if (response.ok) {
-        alert('Match accepted!')
+        setToast({ message: 'Match accepted!', type: 'success' })
         fetchMyMatches()
       }
     } catch (error) {
@@ -333,7 +335,7 @@ export default function BuddyMatchesPage() {
       })
 
       if (response.ok) {
-        alert('Match declined')
+        setToast({ message: 'Match declined', type: 'info' })
         fetchMyMatches()
       }
     } catch (error) {
@@ -354,7 +356,7 @@ export default function BuddyMatchesPage() {
       })
 
       if (response.ok) {
-        alert('Match cancelled')
+        setToast({ message: 'Match cancelled', type: 'info' })
         fetchMyMatches()
       }
     } catch (error) {
@@ -392,6 +394,13 @@ export default function BuddyMatchesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 py-12 px-6">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-12">
