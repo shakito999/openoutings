@@ -546,22 +546,22 @@ export default function EditProfilePage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="bg-gray-50 dark:bg-gray-900/50 px-8 py-6 flex justify-between items-center border-t border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-50 dark:bg-gray-900/50 px-4 py-4 flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-4 border-t border-gray-200 dark:border-gray-700">
             <button
               onClick={() => setShowDeleteConfirm(true)}
               disabled={loading || deleting}
-              className="px-6 py-3 border-2 border-red-600 text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="w-full md:w-auto px-3 md:px-6 py-2 md:py-3 border-2 border-red-600 text-red-600 text-sm md:text-base rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center md:justify-start"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              Изтрий акаунт
+              <span className="truncate">Изтрий акаунт</span>
             </button>
 
-            <div className="flex space-x-4">
+            <div className="flex gap-2 md:gap-4 w-full md:w-auto">
               <button
                 onClick={() => router.back()}
-                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
+                className="flex-1 md:flex-none px-3 md:px-6 py-2 md:py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm md:text-base rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
                 disabled={loading || deleting}
               >
                 Отказ
@@ -569,22 +569,24 @@ export default function EditProfilePage() {
               <button
                 onClick={handleSave}
                 disabled={loading || deleting || !username}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                className="flex-1 md:flex-none px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm md:text-base rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center whitespace-nowrap"
               >
                 {loading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin -ml-0.5 mr-1 h-4 w-4 md:h-5 md:w-5 text-white" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Запазва се...
+                    <span className="hidden md:inline">Запазва се...</span>
+                    <span className="md:hidden">Запазване...</span>
                   </>
                 ) : (
                   <>
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 md:w-5 md:h-5 mr-0.5 md:mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    Запази промените
+                    <span className="hidden md:inline">Запази промените</span>
+                    <span className="md:hidden">Запази</span>
                   </>
                 )}
               </button>
