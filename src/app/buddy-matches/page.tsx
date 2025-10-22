@@ -109,6 +109,12 @@ export default function BuddyMatchesPage() {
       }
 
       const attendeeIds = attendees.map((a) => a.user_id)
+      const otherAttendeeIds = attendeeIds.filter(id => id !== userId)
+
+      if (otherAttendeeIds.length === 0) {
+        setPotentialMatches([])
+        return
+      }
 
       // Get current user's profile, age, interests, and preferences
       const { data: currentUserData } = await supabase
@@ -159,28 +165,28 @@ export default function BuddyMatchesPage() {
       const { data: attendeeProfiles } = await supabase
         .from('profiles')
         .select('id, name, avatar_url, gender')
-        .in('id', attendeeIds.filter(id => id !== userId))
+        .in('id', otherAttendeeIds)
 
       if (!attendeeProfiles || attendeeProfiles.length === 0) {
         setPotentialMatches([])
         return
       }
 
-      // Fetch ages, interests, and preferences for all attendees
+      // Fetch ages, interests, and preferences for other attendees
       const { data: ages } = await supabase
         .from('user_age')
         .select('user_id, birth_year')
-        .in('user_id', attendeeIds)
+        .in('user_id', otherAttendeeIds)
 
       const { data: interests } = await supabase
         .from('user_interests')
         .select('user_id, interest')
-        .in('user_id', attendeeIds)
+        .in('user_id', otherAttendeeIds)
 
       const { data: preferences } = await supabase
         .from('buddy_preferences')
         .select('*')
-        .in('user_id', attendeeIds)
+        .in('user_id', otherAttendeeIds)
 
       // Build UserForMatching objects
       const ageMap = new Map(ages?.map((a) => [a.user_id, a.birth_year]))
