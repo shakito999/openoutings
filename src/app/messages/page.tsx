@@ -136,8 +136,8 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 md:py-12 md:px-6 px-0 py-0">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 md:py-12 md:px-6 px-0 py-0 flex flex-col">
+      <div className="max-w-7xl mx-auto flex-1 flex flex-col md:block">
         <div className="mb-4 hidden md:flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -283,7 +283,7 @@ export default function MessagesPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-4 md:gap-6 h-[calc(100dvh-64px)] md:h-[calc(100vh-280px)] max-h-[100dvh] pb-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
+        <div className="grid grid-cols-1 md:grid-cols-4 md:gap-6 h-[calc(100dvh-64px)] md:h-[calc(100vh-280px)] md:pb-4">
           <div className="hidden md:flex col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex-col">
             {/* Tabs */}
             <div className="flex border-b border-gray-200 dark:border-gray-700">
@@ -582,7 +582,7 @@ function ChatArea({ conversation, userId }: { conversation: any; userId: string 
     : otherParticipant?.profile?.full_name || otherParticipant?.profile?.username || 'Unknown'
 
   return (
-    <div className="flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 h-full min-h-0">
+    <div className="flex flex-col bg-white dark:bg-gray-800 md:rounded-xl md:shadow-lg md:border md:border-gray-200 md:dark:border-gray-700 h-full min-h-0 relative">
       <div className="p-3 md:p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">
           <button
@@ -631,7 +631,7 @@ onClick={() => setShowInfo((v) => !v)}
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto p-0 md:p-6 space-y-4" ref={listRef} onScroll={handleScroll}>
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 pb-32 md:p-6 space-y-4" ref={listRef} onScroll={handleScroll}>
         {hasMore && (
           <button
             onClick={loadMore}
@@ -693,7 +693,7 @@ onClick={() => setShowInfo((v) => !v)}
         )}
       </div>
 
-      <form onSubmit={handleSend} className="p-3 md:p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--kb-offset, 0px))' }}>
+      <form onSubmit={handleSend} className="fixed md:relative bottom-0 left-0 right-0 md:bottom-auto md:left-auto md:right-auto p-3 md:p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 bg-white dark:bg-gray-800 z-10" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
         <div className="relative flex items-center gap-2">
           <button
             type="button"
