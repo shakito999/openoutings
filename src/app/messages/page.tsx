@@ -283,7 +283,7 @@ export default function MessagesPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-4 md:gap-6 h-[calc(100dvh-64px)] md:h-[calc(100vh-280px)] pb-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
+        <div className="grid grid-cols-1 md:grid-cols-4 md:gap-6 h-[calc(100dvh-64px)] md:h-[calc(100vh-280px)] max-h-[100dvh] pb-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
           <div className="hidden md:flex col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex-col">
             {/* Tabs */}
             <div className="flex border-b border-gray-200 dark:border-gray-700">
@@ -391,7 +391,7 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          <div className="col-span-3 min-h-0">
+          <div className="col-span-3 min-h-0 max-h-full overflow-hidden">
             {selectedConversation ? (
               <ChatArea conversation={selectedConversation} userId={userId} />
             ) : (
@@ -693,8 +693,8 @@ onClick={() => setShowInfo((v) => !v)}
         )}
       </div>
 
-      <form onSubmit={handleSend} className="p-0 md:p-6 border-t border-gray-200 dark:border-gray-700" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--kb-offset, 0px) + 12px)' }}>
-        <div className="relative flex items-center gap-2 px-0 md:px-0">
+      <form onSubmit={handleSend} className="p-3 md:p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--kb-offset, 0px))' }}>
+        <div className="relative flex items-center gap-2">
           <button
             type="button"
             onClick={() => setShowEmoji((v) => !v)}
@@ -707,6 +707,12 @@ onClick={() => setShowInfo((v) => !v)}
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
+            onFocus={() => {
+              // Scroll the form into view on mobile when keyboard opens
+              setTimeout(() => {
+                document.activeElement?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' })
+              }, 300)
+            }}
             placeholder="Type a message..."
             maxLength={2000}
             className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-sm"

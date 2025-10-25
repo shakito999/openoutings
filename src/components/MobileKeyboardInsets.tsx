@@ -27,14 +27,20 @@ export default function MobileKeyboardInsets() {
 
     update()
 
-    vv?.addEventListener('resize', update)
-    vv?.addEventListener('scroll', update)
+    if (vv) {
+      vv.addEventListener('resize', update)
+      vv.addEventListener('scroll', update)
+    }
     window.addEventListener('resize', update)
+    window.addEventListener('orientationchange', update)
 
     return () => {
-      vv?.removeEventListener('resize', update)
-      vv?.removeEventListener('scroll', update)
+      if (vv) {
+        vv.removeEventListener('resize', update)
+        vv.removeEventListener('scroll', update)
+      }
       window.removeEventListener('resize', update)
+      window.removeEventListener('orientationchange', update)
       document.documentElement.style.setProperty('--kb-offset', '0px')
     }
   }, [])
