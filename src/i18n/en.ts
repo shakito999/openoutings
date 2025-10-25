@@ -3,6 +3,7 @@ export const messages = {
     events: 'Events',
     community: 'Community',
     buddies: 'Buddies',
+    messages: 'Messages',
     createEvent: 'Create Event',
     newPoll: 'New Poll',
     switchLanguage: 'Switch language',

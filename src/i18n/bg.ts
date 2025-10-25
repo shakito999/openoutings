@@ -3,6 +3,7 @@ export const messages = {
     events: 'Събития',
     community: 'Общност',
     buddies: 'Приятели',
+    messages: 'Съобщения',
     createEvent: 'Създай събитие',
     newPoll: 'Нова анкета',
     switchLanguage: 'Смени езика',
