@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import type { ConversationWithDetails } from '@/types/messaging'
 import type { RealtimeChannel } from '@supabase/supabase-js'
@@ -9,6 +9,7 @@ export function useConversations() {
   const [conversations, setConversations] = useState<ConversationWithDetails[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const userIdRef = useRef<string | null>(null)
 
   // Fetch conversations
   const fetchConversations = useCallback(async () => {
@@ -19,6 +20,7 @@ export function useConversations() {
         setLoading(false)
         return
       }
+      userIdRef.current = user.id
 
       // Step 1: Get conversation IDs the user is part of
       const { data: participantRows, error: partsError } = await supabase
@@ -244,6 +246,10 @@ export function useConversations() {
           table: 'messages'
         },
         (payload) => {
+          // Skip messages sent by self
+          const selfId = userIdRef.current
+          if (selfId && payload.new.sender_id === selfId) return
+
           // Update unread count for the conversation
           setConversations(prev => 
             prev.map(conv => {

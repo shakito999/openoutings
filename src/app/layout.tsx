@@ -4,6 +4,9 @@ import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Providers from "@/components/Providers";
+import MessageNotificationManager from "@/components/MessageNotificationManager";
+import MobileKeyboardInsets from "@/components/MobileKeyboardInsets";
+import NotificationPermissionPrompt from "@/components/NotificationPermissionPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +34,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <Providers>
+          <MobileKeyboardInsets />
+          <MessageNotificationManager />
+          <NotificationPermissionPrompt />
           <Navigation />
           <main className="flex-1">{children}</main>
           <Footer />

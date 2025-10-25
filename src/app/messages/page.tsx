@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
@@ -391,7 +391,7 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          <div className="col-span-3">
+          <div className="col-span-3 min-h-0">
             {selectedConversation ? (
               <ChatArea conversation={selectedConversation} userId={userId} />
             ) : (
@@ -511,6 +511,50 @@ export default function MessagesPage() {
 
 function ChatArea({ conversation, userId }: { conversation: any; userId: string }) {
   const { messages, loading, hasMore, sendMessage, loadMore } = useMessages(conversation.id)
+  const listRef = useRef<HTMLDivElement | null>(null)
+  const stickToBottomRef = useRef(true)
+
+  const scrollToBottom = () => {
+    const el = listRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
+  }
+
+  const handleScroll = () => {
+    const el = listRef.current
+    if (!el) return
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+    stickToBottomRef.current = nearBottom
+  }
+
+  useEffect(() => {
+    (window as any).activeConversationId = conversation.id
+    return () => {
+      try { if ((window as any).activeConversationId === conversation.id) { delete (window as any).activeConversationId } } catch {}
+    }
+  }, [conversation.id])
+
+  useEffect(() => {
+    // initial scroll
+    const id = window.setTimeout(scrollToBottom, 0)
+    return () => window.clearTimeout(id)
+  }, [])
+
+  useEffect(() => {
+    // stick to bottom when new messages arrive and we were already near bottom
+    if (stickToBottomRef.current) {
+      const id = window.setTimeout(scrollToBottom, 0)
+      return () => window.clearTimeout(id)
+    }
+  }, [messages.length])
+
+  useEffect(() => {
+    const onResize = () => {
+      if (stickToBottomRef.current) scrollToBottom()
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
   const [inputValue, setInputValue] = useState('')
   const [sending, setSending] = useState(false)
   const [showEmoji, setShowEmoji] = useState(false)
@@ -538,7 +582,7 @@ function ChatArea({ conversation, userId }: { conversation: any; userId: string 
     : otherParticipant?.profile?.full_name || otherParticipant?.profile?.username || 'Unknown'
 
   return (
-    <div className="flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 h-full">
+    <div className="flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 h-full min-h-0">
       <div className="p-3 md:p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">
           <button
@@ -587,7 +631,7 @@ onClick={() => setShowInfo((v) => !v)}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-0 md:p-6 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto p-0 md:p-6 space-y-4" ref={listRef} onScroll={handleScroll}>
         {hasMore && (
           <button
             onClick={loadMore}
@@ -649,7 +693,7 @@ onClick={() => setShowInfo((v) => !v)}
         )}
       </div>
 
-      <form onSubmit={handleSend} className="p-0 md:p-6 border-t border-gray-200 dark:border-gray-700" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
+      <form onSubmit={handleSend} className="p-0 md:p-6 border-t border-gray-200 dark:border-gray-700" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--kb-offset, 0px) + 12px)' }}>
         <div className="relative flex items-center gap-2 px-0 md:px-0">
           <button
             type="button"

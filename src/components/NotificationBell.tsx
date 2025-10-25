@@ -12,15 +12,21 @@ import {
   type NotificationWithDetails,
 } from '@/lib/notifications'
 import { supabase } from '@/lib/supabaseClient'
+import { useConversations } from '@/hooks/useConversations'
 
 export default function NotificationBell() {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'alerts' | 'messages'>('alerts')
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifications, setNotifications] = useState<NotificationWithDetails[]>([])
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Conversations for Messages tab
+  const { conversations } = useConversations()
+  const messagesUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0)
 
   useEffect(() => {
     loadUser()
@@ -83,10 +89,11 @@ export default function NotificationBell() {
   }
 
   async function handleBellClick() {
-    setIsOpen(!isOpen)
+    const next = !isOpen
+    setIsOpen(next)
     
-    // Mark all unread notifications as read
-    if (!isOpen && unreadCount > 0) {
+    // Only mark alerts as read when opening on Alerts tab
+    if (next && activeTab === 'alerts' && unreadCount > 0) {
       const unreadNotifications = notifications.filter(n => !n.is_read)
       for (const notification of unreadNotifications) {
         await markAsRead(notification.id)
@@ -112,6 +119,24 @@ export default function NotificationBell() {
     const link = getNotificationLink(notification)
     setIsOpen(false)
     router.push(link)
+  }
+
+  async function handleConversationClick(conv: any) {
+    // Update last_read_at to now
+    try {
+      if (!userId) return
+      await supabase
+        .from('conversation_participants')
+        .update({ last_read_at: new Date().toISOString() })
+        .eq('conversation_id', conv.id)
+        .eq('user_id', userId)
+    } catch {}
+
+    setIsOpen(false)
+    const url = new URL(window.location.href)
+    url.pathname = '/messages'
+    url.searchParams.set('conversation', conv.id)
+    router.push(url.toString())
   }
 
   function formatTimeAgo(dateString: string): string {
@@ -166,20 +191,36 @@ export default function NotificationBell() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-[32rem] flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Известия
-            </h3>
-            <Link
-              href="/notifications"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-              onClick={() => setIsOpen(false)}
-            >
-              Виж всички
-            </Link>
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Известия</h3>
+              {activeTab === 'alerts' ? (
+                <Link href="/notifications" className="text-sm text-blue-600 dark:text-blue-400 hover:underline" onClick={() => setIsOpen(false)}>
+                  Виж всички
+                </Link>
+              ) : (
+                <Link href="/messages" className="text-sm text-blue-600 dark:text-blue-400 hover:underline" onClick={() => setIsOpen(false)}>
+                  Отвори съобщения
+                </Link>
+              )}
+            </div>
+            <div className="flex border rounded-md overflow-hidden">
+              <button
+                className={`flex-1 py-2 text-sm font-medium ${activeTab === 'alerts' ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}
+                onClick={() => setActiveTab('alerts')}
+              >
+                Alerts {unreadCount > 0 && (<span className="ml-2 inline-flex items-center justify-center px-1.5 min-w-[1.5rem] h-5 text-xs font-bold text-white bg-red-600 rounded-full">{unreadCount > 99 ? '99+' : unreadCount}</span>)}
+              </button>
+              <button
+                className={`flex-1 py-2 text-sm font-medium ${activeTab === 'messages' ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}
+                onClick={() => setActiveTab('messages')}
+              >
+                Messages {messagesUnread > 0 && (<span className="ml-2 inline-flex items-center justify-center px-1.5 min-w-[1.5rem] h-5 text-xs font-bold text-white bg-blue-600 rounded-full">{messagesUnread > 99 ? '99+' : messagesUnread}</span>)}
+              </button>
+            </div>
           </div>
 
-          {/* Notifications List */}
+          {/* Content */}
           <div className="overflow-y-auto flex-1">
             {loading ? (
               <div className="flex items-center justify-center p-8">
@@ -203,54 +244,67 @@ export default function NotificationBell() {
                   />
                 </svg>
               </div>
-            ) : notifications.length === 0 ? (
-              <div className="p-8 text-center">
-                <div className="text-6xl mb-4">🔔</div>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Нямате известия
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {notifications.map((notification) => (
-                  <button
-                    key={notification.id}
-                    onClick={() => handleNotificationClick(notification)}
-                    className={`w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                      !notification.is_read
-                        ? 'bg-blue-50 dark:bg-blue-900/10'
-                        : ''
-                    }`}
-                  >
-                    <div className="flex items-start space-x-3">
-                      {/* Icon */}
-                      <div className="flex-shrink-0 text-2xl">
-                        {getNotificationIcon(notification.type)}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {notification.title}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                          {formatTimeAgo(notification.created_at)}
-                        </p>
-                      </div>
-
-                      {/* Unread Indicator */}
-                      {!notification.is_read && (
-                        <div className="flex-shrink-0">
-                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+            ) : activeTab === 'alerts' ? (
+              notifications.length === 0 ? (
+                <div className="p-8 text-center">
+                  <div className="text-6xl mb-4">🔔</div>
+                  <p className="text-gray-500 dark:text-gray-400">Нямате известия</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {notifications.map((notification) => (
+                    <button
+                      key={notification.id}
+                      onClick={() => handleNotificationClick(notification)}
+                      className={`w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                        !notification.is_read ? 'bg-blue-50 dark:bg-blue-900/10' : ''
+                      }`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 text-2xl">{getNotificationIcon(notification.type)}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{notification.title}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{notification.message}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{formatTimeAgo(notification.created_at)}</p>
                         </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
+                        {!notification.is_read && (
+                          <div className="flex-shrink-0"><div className="w-2 h-2 bg-blue-600 rounded-full"></div></div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )
+            ) : (
+              // Messages tab
+              conversations.length === 0 ? (
+                <div className="p-8 text-center">
+                  <div className="text-6xl mb-4">💬</div>
+                  <p className="text-gray-500 dark:text-gray-400">No conversations yet</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {conversations.map((conv) => {
+                    const other = conv.participants.find(p => p.user_id !== userId)
+                    const name = conv.type === 'event_group' ? (conv.event?.title || 'Event Chat') : (other?.profile?.full_name || other?.profile?.username || 'Unknown')
+                    return (
+                      <button key={conv.id} onClick={() => handleConversationClick(conv)} className="w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{name}</p>
+                            {conv.last_message && (
+                              <p className="text-xs text-gray-600 dark:text-gray-400 truncate mt-0.5">{conv.last_message.content}</p>
+                            )}
+                          </div>
+{conv.unread_count > 0 && (
+  <span className="ml-2 bg-blue-500 text-white text-xs rounded-full min-w-[1.5rem] h-6 px-2 flex items-center justify-center flex-shrink-0">{conv.unread_count > 99 ? '99+' : conv.unread_count}</span>
+)}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )
             )}
           </div>
         </div>
