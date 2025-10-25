@@ -82,6 +82,22 @@ export default function NotificationBell() {
     setUnreadCount(count)
   }
 
+  async function handleBellClick() {
+    setIsOpen(!isOpen)
+    
+    // Mark all unread notifications as read
+    if (!isOpen && unreadCount > 0) {
+      const unreadNotifications = notifications.filter(n => !n.is_read)
+      for (const notification of unreadNotifications) {
+        await markAsRead(notification.id)
+      }
+      setUnreadCount(0)
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, is_read: true }))
+      )
+    }
+  }
+
   async function handleNotificationClick(notification: NotificationWithDetails) {
     // Mark as read
     if (!notification.is_read) {
@@ -120,7 +136,7 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       {/* Bell Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleBellClick}
         className="relative p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         aria-label="Notifications"
       >

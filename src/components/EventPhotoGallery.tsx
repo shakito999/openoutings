@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Image from 'next/image'
 
 interface EventPhotoGalleryProps {
   photos: { storage_path: string }[]
@@ -68,10 +69,12 @@ export default function EventPhotoGallery({ photos, eventTitle, eventDate }: Eve
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <img
+        <Image
           src={photos[selectedIndex].storage_path}
           alt={eventTitle}
-          className="w-full h-full object-cover select-none"
+          fill
+          sizes="100vw"
+          className="object-cover select-none"
           draggable={false}
         />
         <div className="absolute top-4 right-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm px-4 py-2 rounded-full">
@@ -129,9 +132,11 @@ export default function EventPhotoGallery({ photos, eventTitle, eventDate }: Eve
                   : 'opacity-60 hover:opacity-100'
               }`}
             >
-              <img
+              <Image
                 src={photo.storage_path}
                 alt={`${eventTitle} - photo ${index + 1}`}
+                width={128}
+                height={96}
                 className="w-full h-full object-cover"
               />
             </button>

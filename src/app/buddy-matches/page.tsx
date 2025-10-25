@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import { findPotentialMatches } from '@/lib/buddyMatching'
 import { PotentialMatch, BuddyMatchWithProfiles, UserForMatching } from '@/lib/types/buddyMatching'
@@ -461,9 +462,11 @@ export default function BuddyMatchesPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         {partner?.avatar_url ? (
-                          <img
+                          <Image
                             src={partner.avatar_url}
                             alt={partner.name}
+                            width={64}
+                            height={64}
                             className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
                           />
                         ) : (
@@ -521,9 +524,11 @@ export default function BuddyMatchesPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         {partner?.avatar_url ? (
-                          <img
+                          <Image
                             src={partner.avatar_url}
                             alt={partner.name}
+                            width={64}
+                            height={64}
                             className="w-16 h-16 rounded-full object-cover border-2 border-green-200 dark:border-green-900/30"
                           />
                         ) : (
@@ -570,9 +575,11 @@ export default function BuddyMatchesPage() {
                   <div key={match.user.id} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow">
                     <div className="flex items-center space-x-4 mb-4">
                       {match.user.avatar_url ? (
-                        <img
+                        <Image
                           src={match.user.avatar_url}
                           alt={match.user.name}
+                          width={64}
+                          height={64}
                           className="w-16 h-16 rounded-full object-cover border-2 border-blue-200 dark:border-blue-900/30"
                         />
                       ) : (

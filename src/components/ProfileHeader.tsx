@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import ProfileEditButton from './ProfileEditButton'
 import FollowButton from './FollowButton'
@@ -72,10 +73,12 @@ export default function ProfileHeader({
       {/* Cover Image */}
       <div className="h-48 relative overflow-hidden">
         {profile.cover_url ? (
-          <img
+          <Image
             src={profile.cover_url}
             alt="Cover"
-            className="w-full h-full object-cover"
+            fill
+            sizes="100vw"
+            className="object-cover"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-r from-blue-500 to-purple-600" />
@@ -88,9 +91,11 @@ export default function ProfileHeader({
           <div className="flex-1 flex flex-col sm:flex-row sm:items-end gap-4">
             <div className="relative">
               {profile.avatar_url ? (
-                <img
+                <Image
                   src={profile.avatar_url}
                   alt={profile.full_name || profile.username}
+                  width={128}
+                  height={128}
                   className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 object-cover"
                 />
               ) : (

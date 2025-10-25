@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import { User } from '@supabase/supabase-js'
 import { useLanguage } from '@/contexts/LanguageContext'
@@ -132,9 +133,11 @@ export default function Navigation() {
                 className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 {profile?.avatar_url ? (
-                  <img
+                  <Image
                     src={profile.avatar_url}
                     alt={t('nav.profile')}
+                    width={32}
+                    height={32}
                     className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
                   />
                 ) : (
@@ -244,9 +247,11 @@ export default function Navigation() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {profile?.avatar_url ? (
-                    <img
+                    <Image
                       src={profile.avatar_url}
                       alt={t('nav.profile')}
+                      width={32}
+                      height={32}
                       className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700 mr-3"
                     />
                   ) : (

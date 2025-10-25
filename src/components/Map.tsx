@@ -137,8 +137,8 @@ export default function Map({ center = [51.505, -0.09] as LatLngExpression, onPi
   return (
     <div className="space-y-3">
       {/* Search Controls */}
-      <div className="flex gap-2">
-        <div className="flex-1 flex gap-2">
+      <div className="flex gap-2 flex-wrap">
+        <div className="flex-1 flex gap-2 min-w-0">
           <input
             type="text"
             placeholder="Search for a location..."
@@ -150,25 +150,27 @@ export default function Map({ center = [51.505, -0.09] as LatLngExpression, onPi
           <button
             onClick={handleSearch}
             disabled={searching || !searchQuery.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center gap-2"
+            aria-label="Search"
+            className="sm:px-4 sm:py-2 px-2 py-2 bg-blue-600 text-white rounded-full sm:rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            {searching ? 'Searching...' : 'Search'}
+            <span className="hidden sm:inline">{searching ? 'Searching...' : 'Search'}</span>
           </button>
         </div>
         <button
           onClick={handleMyLocation}
           disabled={gettingLocation}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center gap-2"
+          aria-label="Use my location"
+          className="sm:px-4 sm:py-2 px-2 py-2 bg-purple-600 text-white rounded-full sm:rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap"
           title="Use my location"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          {gettingLocation ? 'Getting...' : 'My Location'}
+          <span className="hidden sm:inline">{gettingLocation ? 'Getting...' : 'My Location'}</span>
         </button>
       </div>
 

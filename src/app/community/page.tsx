@@ -3,18 +3,52 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import { useConversations } from '@/hooks/useConversations'
+import FollowButton from '@/components/FollowButton'
 
 export default function CommunityPage() {
   const router = useRouter()
+  const { conversations } = useConversations()
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
   const [myEventIds, setMyEventIds] = useState<number[]>([])
   const [uniqueMembers, setUniqueMembers] = useState<any[]>([])
   const [myInterestIds, setMyInterestIds] = useState<number[]>([])
+  const [messagingUserId, setMessagingUserId] = useState<string | null>(null)
+  const [followStatus, setFollowStatus] = useState<Map<string, { isFollowing: boolean, isFollower: boolean }>>(new Map())
 
   useEffect(() => {
     loadCommunityData()
   }, [])
+
+  const handleMessage = async (recipientId: string) => {
+    if (!userId) return
+    setMessagingUserId(recipientId)
+
+    try {
+      // Call the database function directly from client
+      const { data: conversationId, error } = await supabase
+        .rpc('get_or_create_direct_conversation', {
+          user_id_1: userId,
+          user_id_2: recipientId
+        })
+
+      if (error) {
+        throw error
+      }
+
+      router.push(`/messages?conversation=${conversationId}`)
+    } catch (error: any) {
+      console.error('Failed to start conversation:', error)
+      if (error.message?.includes('follow each other')) {
+        alert('You must follow each other to send messages.')
+      } else {
+        alert('Failed to start conversation. Please try again.')
+      }
+    } finally {
+      setMessagingUserId(null)
+    }
+  }
 
   async function loadCommunityData() {
     setLoading(true)
@@ -109,6 +143,35 @@ export default function CommunityPage() {
     )
 
     setUniqueMembers(members)
+    
+    // Load follow status for all members
+    const userIds = members.map(m => m.profile.id).filter(Boolean)
+    if (userIds.length > 0) {
+      const { data: following } = await supabase
+        .from('user_follows')
+        .select('following_id')
+        .eq('follower_id', user.id)
+        .in('following_id', userIds)
+      
+      const { data: followers } = await supabase
+        .from('user_follows')
+        .select('follower_id')
+        .eq('following_id', user.id)
+        .in('follower_id', userIds)
+      
+      const followingSet = new Set(following?.map(f => f.following_id) || [])
+      const followerSet = new Set(followers?.map(f => f.follower_id) || [])
+      
+      const statusMap = new Map()
+      for (const uid of userIds) {
+        statusMap.set(uid, {
+          isFollowing: followingSet.has(uid),
+          isFollower: followerSet.has(uid)
+        })
+      }
+      setFollowStatus(statusMap)
+    }
+    
     setLoading(false)
   }
 
@@ -174,48 +237,26 @@ export default function CommunityPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Connections</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{uniqueMembers.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Events Attended</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{myEventIds.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+        <div className="grid grid-cols-3 gap-3 md:grid-cols-3 md:gap-6 mb-6 md:mb-8">
+          {[
+            { label: 'Connections', value: uniqueMembers.length, bgClass: 'bg-blue-100 dark:bg-blue-900/30', textClass: 'text-blue-600 dark:text-blue-400', iconPath: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+            { label: 'Events', value: myEventIds.length, bgClass: 'bg-purple-100 dark:bg-purple-900/30', textClass: 'text-purple-600 dark:text-purple-400', iconPath: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+            { label: 'Interests', value: myInterestIds.length, bgClass: 'bg-green-100 dark:bg-green-900/30', textClass: 'text-green-600 dark:text-green-400', iconPath: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z' },
+          ].map(({ label, value, bgClass, textClass, iconPath }) => (
+            <div key={label} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+              <div className="flex items-center justify-between min-h-[64px]">
+                <div>
+                  <p className="text-[11px] md:text-sm text-gray-600 dark:text-gray-400 mb-1 whitespace-nowrap truncate" title={label}>{label}</p>
+                  <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
+                </div>
+                <div className={`w-10 h-10 md:w-12 md:h-12 ${bgClass} rounded-lg flex items-center justify-center`}>
+                  <svg className={`w-5 h-5 md:w-6 md:h-6 ${textClass}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
+                  </svg>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Shared Interests</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{myInterestIds.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Community Members */}
@@ -231,32 +272,35 @@ export default function CommunityPage() {
               {uniqueMembers.map((member) => {
                 if (!member.profile) return null
                 
+                const status = followStatus.get(member.profile.id)
+                const isMutualFollow = status?.isFollowing && status?.isFollower
+                
                 return (
-                  <Link
+                  <div
                     key={member.profile.id}
-                    href={`/profile/${member.profile.id}`}
-                    className="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-gray-200 dark:border-gray-700"
+                    className="grid grid-cols-[64px_1fr_auto] gap-3 sm:gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 items-start"
                   >
-                    {/* Avatar */}
-                    {member.profile.avatar_url ? (
-                      <img
-                        src={member.profile.avatar_url}
-                        alt={member.profile.full_name || member.profile.username}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                        {member.profile.full_name?.[0] || member.profile.username?.[0] || 'U'}
-                      </div>
-                    )}
+                    <Link href={`/profile/${member.profile.id}`} className="flex-shrink-0">
+                      {member.profile.avatar_url ? (
+                        <img
+                          src={member.profile.avatar_url}
+                          alt={member.profile.full_name || member.profile.username}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 transition-colors"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold hover:shadow-lg transition-shadow">
+                          {member.profile.full_name?.[0] || member.profile.username?.[0] || 'U'}
+                        </div>
+                      )}
+                    </Link>
 
                     {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <div className="min-w-0">
+                      <Link href={`/profile/${member.profile.id}`}>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                           {member.profile.full_name || member.profile.username}
                         </h3>
-                      </div>
+                      </Link>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         @{member.profile.username}
                       </p>
@@ -285,7 +329,28 @@ export default function CommunityPage() {
                         )}
                       </div>
                     </div>
-                  </Link>
+                    
+                    {/* Action buttons */}
+                    <div className="flex flex-col items-end gap-2">
+                      <FollowButton compact userId={member.profile.id} currentUserId={userId || undefined} />
+                      {isMutualFollow && (
+                        <button
+                          onClick={() => handleMessage(member.profile.id)}
+                          disabled={messagingUserId === member.profile.id}
+                          className="inline-flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full sm:rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all font-medium text-sm shadow-lg shadow-blue-500/30 disabled:shadow-none"
+                          aria-label="Message"
+                          title="Message"
+                        >
+                          {/* Message bubble icon */}
+                          <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10a2 2 0 012 2v5a2 2 0 01-2 2H9l-4 4v-9a2 2 0 012-2z" />
+                          </svg>
+                          <span className="hidden sm:inline">{messagingUserId === member.profile.id ? 'Starting...' : 'Message'}</span>
+                          <span className="sm:hidden">{messagingUserId === member.profile.id ? '...' : ''}</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 )
               })}
             </div>

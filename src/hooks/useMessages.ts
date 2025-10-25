@@ -11,27 +11,35 @@ export function useMessages(conversationId: string | null) {
   const [hasMore, setHasMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch initial messages
+  // Fetch initial messages (client-side)
   const fetchMessages = useCallback(async (before?: string) => {
     if (!conversationId) return
 
     try {
-      const url = `/api/conversations/${conversationId}/messages?limit=50${before ? `&before=${before}` : ''}`
-      const response = await fetch(url)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch messages')
-      }
+      let query = supabase
+        .from('messages')
+        .select(`
+          *,
+          sender:profiles!messages_sender_id_fkey(id, username, full_name, avatar_url)
+        `)
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: false })
+        .limit(50)
 
       if (before) {
-        // Prepend older messages
-        setMessages(prev => [...data.messages, ...prev])
-      } else {
-        // Initial load
-        setMessages(data.messages)
+        query = query.lt('created_at', before)
       }
-      setHasMore(data.hasMore)
+
+      const { data, error } = await query
+      if (error) throw error
+
+      const page = (data || []).reverse() as MessageWithSender[]
+      if (before) {
+        setMessages(prev => [...page, ...prev])
+      } else {
+        setMessages(page)
+      }
+      setHasMore((data || []).length === 50)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
@@ -39,25 +47,32 @@ export function useMessages(conversationId: string | null) {
     }
   }, [conversationId])
 
-  // Send a new message
+  // Send a new message (client-side)
   const sendMessage = useCallback(async (content: string) => {
     if (!conversationId) return
 
     try {
-      const response = await fetch(`/api/conversations/${conversationId}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content })
-      })
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
 
-      const data = await response.json()
+      const { data, error } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: content.trim()
+        })
+        .select(`
+          *,
+          sender:profiles!messages_sender_id_fkey(id, username, full_name, avatar_url)
+        `)
+        .single()
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send message')
-      }
+      if (error) throw error
 
-      // Optimistic update - message will also come through realtime
-      return data.message
+      // Optimistic add; realtime will also push it
+      setMessages(prev => [...prev, data as unknown as MessageWithSender])
+      return data
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send message')
       throw err
@@ -107,7 +122,6 @@ export function useMessages(conversationId: string | null) {
 
           if (newMessage) {
             setMessages(prev => {
-              // Avoid duplicates (in case optimistic update)
               if (prev.some(m => m.id === newMessage.id)) {
                 return prev
               }

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createServerSupabase } from '@/lib/supabaseServer'
 import JoinEventButton from '@/components/JoinEventButton'
 import AddToCalendarButton from '@/components/AddToCalendarButton'
@@ -348,9 +349,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                   className="flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 p-2 rounded-lg transition-colors"
                 >
                   {event.profiles.avatar_url ? (
-                    <img
+                    <Image
                       src={event.profiles.avatar_url}
                       alt={event.profiles.full_name || event.profiles.username}
+                      width={48}
+                      height={48}
                       className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
                     />
                   ) : (

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import CompactFilters from '@/components/CompactFilters'
 import EventsSection from '@/components/EventsSection'
+import Image from 'next/image'
 import { createServerSupabase } from '@/lib/supabaseServer'
 
 function getDateRange(timeFilter: string) {
@@ -216,19 +217,23 @@ export default async function EventsPage({ searchParams }:{ searchParams: Promis
                   className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500"
                 >
                   <div className="h-48 relative overflow-hidden">
-                    <img
+                    <Image
                       src={e.event_photos?.[0]?.storage_path || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800'}
                       alt={e.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      sizes="(max-width: 1024px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
                     
                     {/* Host badge */}
                     <div className="absolute top-4 left-4 flex items-center space-x-2 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm px-3 py-2 rounded-full">
                       {e.profiles?.avatar_url ? (
-                        <img
+                        <Image
                           src={e.profiles.avatar_url}
                           alt={e.profiles.full_name || e.profiles.username}
+                          width={24}
+                          height={24}
                           className="w-6 h-6 rounded-full object-cover"
                         />
                       ) : (

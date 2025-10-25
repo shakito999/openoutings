@@ -58,7 +58,7 @@ export default function NewEventPage(){
         const { error: uploadError } = await supabase.storage
           .from('profiles')
           .upload(filePath, compressedBlob, {
-            cacheControl: '3600',
+            cacheControl: '31536000',
             upsert: false
           })
 

@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import { getInterestDisplay, searchInterests } from '@/lib/interestsBilingual'
 import { INTERESTS } from '@/lib/interestGroups'
@@ -97,7 +98,7 @@ export default function EditProfilePage() {
       const { error: uploadError, data } = await supabase.storage
         .from('profiles')
         .upload(filePath, compressedBlob, {
-          cacheControl: '3600',
+          cacheControl: '31536000',
           upsert: true
         })
 
@@ -138,7 +139,7 @@ export default function EditProfilePage() {
       const { error: uploadError } = await supabase.storage
         .from('profiles')
         .upload(filePath, compressedBlob, {
-          cacheControl: '3600',
+          cacheControl: '31536000',
           upsert: true
         })
 
@@ -274,10 +275,12 @@ export default function EditProfilePage() {
                 <div className="h-48 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600 relative">
                   {coverUrl ? (
                     <>
-                      <img
+                      <Image
                         src={coverUrl}
                         alt="Cover"
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="100vw"
+                        className="object-cover"
                       />
                       <button
                         onClick={() => setCoverUrl('')}
@@ -327,9 +330,11 @@ export default function EditProfilePage() {
               </label>
               <div className="flex items-center space-x-6">
                 {avatarUrl ? (
-                  <img
+                  <Image
                     src={avatarUrl}
                     alt="Avatar"
+                    width={96}
+                    height={96}
                     className="w-24 h-24 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700"
                   />
                 ) : (

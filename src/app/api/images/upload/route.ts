@@ -20,16 +20,17 @@ export async function POST(req: NextRequest) {
     const output = await sharp(input)
       .rotate()
       .resize({ width, height, fit: 'inside' })
-      .jpeg({ quality })
+      .webp({ quality })
       .toBuffer()
 
     const supabase = createServiceClient()
     const bucket = 'images'
-    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.webp`
     const path = `uploads/${fileName}`
 
     const { error } = await supabase.storage.from(bucket).upload(path, output, {
-      contentType: 'image/jpeg',
+      contentType: 'image/webp',
+      cacheControl: '31536000',
       upsert: false,
     })
     if (error) throw error
