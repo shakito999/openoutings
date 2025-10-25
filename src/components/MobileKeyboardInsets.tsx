@@ -6,10 +6,11 @@ export default function MobileKeyboardInsets() {
   useEffect(() => {
     // Enable overlay for browsers that support VirtualKeyboard API (mostly Android Chrome)
     try {
+      // Prefer browser resizing the viewport via interactive-widget; avoid overlays mode
       // @ts-ignore
-      if (navigator?.virtualKeyboard) {
+      if (navigator?.virtualKeyboard && typeof navigator.virtualKeyboard.overlaysContent === 'boolean') {
         // @ts-ignore
-        navigator.virtualKeyboard.overlaysContent = true
+        navigator.virtualKeyboard.overlaysContent = false
       }
     } catch {}
 

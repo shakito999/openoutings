@@ -582,7 +582,7 @@ function ChatArea({ conversation, userId }: { conversation: any; userId: string 
     : otherParticipant?.profile?.full_name || otherParticipant?.profile?.username || 'Unknown'
 
   return (
-    <div className="flex flex-col bg-white dark:bg-gray-800 md:rounded-xl md:shadow-lg md:border md:border-gray-200 md:dark:border-gray-700 h-full min-h-0 relative">
+    <div className="flex flex-col bg-white dark:bg-gray-800 md:rounded-xl md:shadow-lg md:border md:border-gray-200 md:dark:border-gray-700 h-full min-h-0">
       <div className="p-3 md:p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">
           <button
@@ -631,7 +631,7 @@ onClick={() => setShowInfo((v) => !v)}
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto p-3 pb-32 md:p-6 space-y-4" ref={listRef} onScroll={handleScroll}>
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 md:p-6 space-y-4" ref={listRef} onScroll={handleScroll}>
         {hasMore && (
           <button
             onClick={loadMore}
@@ -693,7 +693,7 @@ onClick={() => setShowInfo((v) => !v)}
         )}
       </div>
 
-      <form onSubmit={handleSend} className="fixed md:relative bottom-0 left-0 right-0 md:bottom-auto md:left-auto md:right-auto p-3 md:p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 bg-white dark:bg-gray-800 z-10" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
+      <form onSubmit={handleSend} className="sticky bottom-0 p-3 md:p-6 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div className="relative flex items-center gap-2">
           <button
             type="button"
