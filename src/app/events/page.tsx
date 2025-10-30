@@ -3,6 +3,7 @@ import CompactFilters from '@/components/CompactFilters'
 import EventsSection from '@/components/EventsSection'
 import Image from 'next/image'
 import { createServerSupabase } from '@/lib/supabaseServer'
+import EventsMapView from '@/components/EventsMapView'
 
 function getDateRange(timeFilter: string) {
   const now = new Date()
@@ -49,6 +50,7 @@ export default async function EventsPage({ searchParams }:{ searchParams: Promis
   const sortBy = params.sort ?? 'soonest'
   const distanceFilter = params.distance ?? ''
   const interestsFilter = params.interests?.split(',').filter(Boolean) || []
+  const view = (params.view === 'map' || params.view === 'list') ? params.view : 'list'
   
   // Get current user and events from people they follow
   const { data: { user } } = await supabase.auth.getUser()
@@ -184,119 +186,157 @@ export default async function EventsPage({ searchParams }:{ searchParams: Promis
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Discover Events
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">Find and join exciting activities in your area</p>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              Discover Events
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">Find and join exciting activities in your area</p>
+          </div>
+
+          {/* View Toggle */}
+          <div className="inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <Link href={`/events?${new URLSearchParams({ ...params, view: 'list' } as any).toString()}`} className={`px-3 py-2 text-sm font-medium ${view === 'list' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+              List
+            </Link>
+            <Link href={`/events?${new URLSearchParams({ ...params, view: 'map' } as any).toString()}`} className={`px-3 py-2 text-sm font-medium ${view === 'map' ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
+              Map
+            </Link>
+          </div>
         </div>
 
         {/* Filters */}
-        <div className="mb-8">
+        <div className="mb-6">
           <CompactFilters />
         </div>
 
-        {/* Events from People You Follow */}
-        {followedUsersEvents.length > 0 && (
-          <div className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                  👥 From People You Follow
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Events hosted by your connections
-                </p>
+        {view === 'map' ? (
+          // Map View
+          events && events.length > 0 ? (
+            <EventsMapView events={events} />
+          ) : (
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                </svg>
               </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No events to show on map</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">Try adjusting your filters or create a new event</p>
+              <Link href="/events/new" className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium shadow-lg shadow-blue-500/30">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Create Event
+              </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {followedUsersEvents.map((e: any) => (
-                <Link
-                  key={e.id}
-                  href={`/events/${e.id}`}
-                  className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500"
-                >
-                  <div className="h-48 relative overflow-hidden">
-                    <Image
-                      src={e.event_photos?.[0]?.storage_path || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800'}
-                      alt={e.title}
-                      fill
-                      sizes="(max-width: 1024px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                    
-                    {/* Host badge */}
-                    <div className="absolute top-4 left-4 flex items-center space-x-2 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm px-3 py-2 rounded-full">
-                      {e.profiles?.avatar_url ? (
-                        <Image
-                          src={e.profiles.avatar_url}
-                          alt={e.profiles.full_name || e.profiles.username}
-                          width={24}
-                          height={24}
-                          className="w-6 h-6 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
-                          {(e.profiles?.full_name?.[0] || e.profiles?.username?.[0] || 'U').toUpperCase()}
-                        </div>
-                      )}
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {e.profiles?.full_name || e.profiles?.username || 'Host'}
-                      </span>
-                    </div>
-
-                    <div className="absolute top-4 right-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
-                      {new Date(e.starts_at).toLocaleDateString('bg-BG', { month: 'short', day: 'numeric' })}
-                    </div>
-                  </div>
-                  
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-                      {e.title}
-                    </h3>
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      {new Date(e.starts_at).toLocaleString('en-US', {
-                        weekday: 'short',
-                        hour: 'numeric',
-                        minute: '2-digit'
-                      })}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* All Events */}
-        {events && events.length > 0 ? (
-          <EventsSection 
-            events={events} 
-            title={followedUsersEvents.length > 0 ? 'All Events' : 'Events'}
-          />
+          )
         ) : (
-          <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No events found</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">Try adjusting your filters or create a new event</p>
-            <Link
-              href="/events/new"
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium shadow-lg shadow-blue-500/30"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Create Event
-            </Link>
-          </div>
+          // List View
+          <>
+            {/* Events from People You Follow */}
+            {followedUsersEvents.length > 0 && (
+              <div className="mb-12">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                      👥 From People You Follow
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Events hosted by your connections
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {followedUsersEvents.map((e: any) => (
+                    <Link
+                      key={e.id}
+                      href={`/events/${e.id}`}
+                      className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500"
+                    >
+                      <div className="h-48 relative overflow-hidden">
+                        <Image
+                          src={e.event_photos?.[0]?.storage_path || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800'}
+                          alt={e.title}
+                          fill
+                          sizes="(max-width: 1024px) 50vw, 33vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                        
+                        {/* Host badge */}
+                        <div className="absolute top-4 left-4 flex items-center space-x-2 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm px-3 py-2 rounded-full">
+                          {e.profiles?.avatar_url ? (
+                            <Image
+                              src={e.profiles.avatar_url}
+                              alt={e.profiles.full_name || e.profiles.username}
+                              width={24}
+                              height={24}
+                              className="w-6 h-6 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                              {(e.profiles?.full_name?.[0] || e.profiles?.username?.[0] || 'U').toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                            {e.profiles?.full_name || e.profiles?.username || 'Host'}
+                          </span>
+                        </div>
+
+                        <div className="absolute top-4 right-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium">
+                          {new Date(e.starts_at).toLocaleDateString('bg-BG', { month: 'short', day: 'numeric' })}
+                        </div>
+                      </div>
+                      
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                          {e.title}
+                        </h3>
+                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {new Date(e.starts_at).toLocaleString('en-US', {
+                            weekday: 'short',
+                            hour: 'numeric',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* All Events */}
+            {events && events.length > 0 ? (
+              <EventsSection 
+                events={events} 
+                title={followedUsersEvents.length > 0 ? 'All Events' : 'Events'}
+              />
+            ) : (
+              <div className="text-center py-16">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No events found</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Try adjusting your filters or create a new event</p>
+                <Link
+                  href="/events/new"
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium shadow-lg shadow-blue-500/30"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Create Event
+                </Link>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -58,3 +58,20 @@ body {
 .leaflet-container {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
 }
+
+/* Clean popup style for event cards on the map */
+.oo-clean-popup .leaflet-popup-content-wrapper {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+}
+.oo-clean-popup .leaflet-popup-content {
+  margin: 0;
+}
+.oo-clean-popup .leaflet-popup-tip {
+  display: none;
+}
+.oo-clean-popup .leaflet-popup-close-button {
+  display: none;
+}

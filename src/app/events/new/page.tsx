@@ -338,6 +338,9 @@ export default function NewEventPage(){
                   onPick={(a,b)=> setLatlng([a,b])} 
                   onAddressFound={(addr) => !address && setAddress(addr)}
                 />
+                <div className="mt-3 p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-sm text-blue-800 dark:text-blue-200">
+                  Adding a precise map location helps people discover your event on the map and navigate to the right spot.
+                </div>
                 {latlng && (
                   <p className="text-sm text-green-600 dark:text-green-400 mt-2 flex items-center gap-1">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
